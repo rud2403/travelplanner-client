@@ -8,7 +8,7 @@ export default function Signup() {
 
     const handleClick = async () => {
         try {
-            const host = window.location.hostname === "localhost" ? 'http://localhost:8080/api/tests/Docker-test' : '/api/* http://15.165.4.45/:splat 200';
+            const host = window.location.hostname === "localhost" ? 'http://localhost:8080/api/tests/Docker-test' : 'http://15.165.4.45:8080/api/tests/Docker-test';
 
             const response = await axios.get(host);
             console.log('response : ', response);
