@@ -1,5 +1,0 @@
-[[redirects]]
-  from = "/*"
-  to = "https://15.165.4.45/:splat"
-  status = 200
-  force = true
