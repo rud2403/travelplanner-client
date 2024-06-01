@@ -1,4 +1,4 @@
 [[redirects]]
-  from = "/api/tests/*"
+  from = "/signup*"
   to = "http://15.165.4.45:8080/api/tests/:splat"
   status = 200
