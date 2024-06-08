@@ -8,8 +8,7 @@ export default function Signup() {
 
   const handleClick = async () => {
     try {
-      const host = window.location.hostname === "localhost" ? '/api/tests/Docker-test' : '/api/tests/Docker-test';
-      const response = await axios.get(host);
+      const response = await axios.get('/api/tests/Docker-test');
       console.log('response : ', response);
       setMessage(`Button clicked! Response: ${response.data}`);
     } catch (error) {
