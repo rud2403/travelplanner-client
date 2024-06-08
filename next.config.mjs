@@ -2,13 +2,14 @@
 const nextConfig = {
     reactStrictMode: true,
     async rewrites() {
-        return [
-            {
-                source: '/api/tests/Docker-test',
-                destination: 'http://15.165.4.45:8080/api/tests/Docker-test',
-            },
-        ];
+      return [
+        {
+          source: '/api/:path*',
+          destination: 'http://15.165.4.45:8080/api/:path*',
+        },
+      ];
     },
-};
-
-export default nextConfig;
+  };
+  
+  export default nextConfig;
+  
