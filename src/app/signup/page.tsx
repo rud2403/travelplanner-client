@@ -1,20 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import axios from 'axios';
+import { fetchData } from '@/services/dockerTest';
 
 export default function Signup() {
   const [message, setMessage] = useState('Hello, click the button!');
 
   const handleClick = async () => {
     try {
-      const response = await axios.get('/api/tests/Docker-test');
-      console.log('response : ', response);
-      setMessage(`Button clicked! Response: ${response.data}`);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      setMessage('Error fetching data');
-    }
+        const data = await fetchData();
+        setMessage(`Button clicked! Response: ${data}`);
+      } catch (error) {
+        setMessage('Error fetching data');
+      }
   };
 
   return (
