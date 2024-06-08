@@ -8,7 +8,7 @@ export default function Signup() {
 
     const handleClick = async () => {
         try {
-            const host = window.location.hostname === "localhost" ? 'http://localhost:8080/api/tests/Docker-test' : '/api/tests/Docker-test';
+            const host = window.location.hostname === "localhost" ? 'http://localhost:8080/api/tests/Docker-test' : 'http://15.165.4.45:8080/api/tests/Docker-test';
 
             const response = await axios.get(host);
             console.log('response : ', response);
@@ -16,7 +16,7 @@ export default function Signup() {
         } catch (error) {
             console.error('Error fetching data:', error);
             setMessage('Error fetching data');
-        }
+        };
     }
 
     return (
@@ -26,4 +26,5 @@ export default function Signup() {
             <button onClick={handleClick}>dd</button>
         </main>
     );
+
 }
