@@ -20,19 +20,28 @@ export default function RootLayout({
       <head>
       </head>
       <body className={inter.className}>
-        {/* 헤더 시작 */}
-        <header className="bg-blue-600 text-white p-4 shadow-md">
-          <div className="container mx-auto flex justify-between items-center">
-            <h1 className="text-2xl font-bold">
-              <Link href="/">TravelPlanner</Link>
-            </h1>
-            <nav className="space-x-4">
-              <Link href="/user/signin">Sign In</Link>
+        {/* Header */}
+        <header className="bg-white shadow-md">
+          <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+            <Link href="/" className="flex items-center">
+              <img src="/logo.png" alt="Logo" className="w-10 h-10 mr-3" />
+              <h1 className="text-2xl font-bold text-gray-800">Travel Planner</h1>
+            </Link>
+            <nav className="flex space-x-4">
+              <Link href="/user/signin" className="text-gray-800 hover:text-blue-500 transition duration-300">Signin</Link>
+              <Link href="/about" className="text-gray-800 hover:text-blue-500 transition duration-300">About</Link>
+              <Link href="/contact" className="text-gray-800 hover:text-blue-500 transition duration-300">Contact</Link>
             </nav>
           </div>
         </header>
-        {/* 헤더 끝 */}
+        {/* Body */}
         {children}
+        {/* Footer */}
+        <footer className="bg-white text-gray-800 py-6">
+          <div className="container mx-auto px-6 text-center">
+            <p>&copy; 2024 Myro. All rights reserved.</p>
+          </div>
+        </footer>
       </body>
     </html>
   );

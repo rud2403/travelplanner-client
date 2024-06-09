@@ -20,43 +20,25 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen">
-      {/* 사이드 메뉴 */}
-      <aside className="w-64 bg-gray-800 text-white flex flex-col p-4">
-        <h2 className="text-2xl font-bold mb-4">Menu</h2>
-        <nav className="flex flex-col space-y-2">
-          <button onClick={handleCheck} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-300">
-            백단 통신체크
-          </button>
-          <Link href="#">
-            Page 2
-          </Link>
-          <Link href="#">
-            Page 3
-          </Link>
-        </nav>
-      </aside>
+    <div className="min-h-screen flex flex-col">
+      {/* Main Section */}
+      <section className="flex flex-1 relative">
+        {/* Background GIF */}
+        <div className="absolute inset-0 z-0">
+          <img src="/giphy.webp" alt="Background" className="w-full h-full object-cover" />
+        </div>
 
-      {/* 지도 영역 */}
-      <section className="w-full bg-gray-200 p-4">
-        <div className="h-full flex items-center justify-center">
-          <div className="w-full h-full bg-white border rounded-md shadow-md p-4">
-            <p className="text-center text-gray-600">Map Area</p>
-            {/* 여기에 백단 response 표시 */}
-            {response && (
-              <div className="mt-4 p-4 bg-green-100 text-green-800 rounded-md">
-                <p>Response:</p>
-                <pre>{JSON.stringify(response, null, 2)}</pre>
-              </div>
-            )}
-            {error && (
-              <div className="mt-4 p-4 bg-red-100 text-red-800 rounded-md">
-                <p>{error}</p>
-              </div>
-            )}
-          </div>
+        <div className="w-full bg-gray-100 bg-opacity-75 flex flex-col items-center justify-center p-6 z-10">
+          <p className="text-3xl md:text-4xl font-bold mb-6 text-center text-gray-800">
+            Travel Planner와 함께 여행 일정을 짜보세요
+          </p>
+          <Link href="/planning">
+          <button className="bg-blue-500 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-600 transition duration-300 text-lg md:text-xl">
+            일정 만들기
+          </button>
+          </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
