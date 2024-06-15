@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Link from 'next/link';
+import 'react-calendar/dist/Calendar.css';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,7 +29,7 @@ export default function RootLayout({
               <h1 className="text-2xl font-bold text-gray-800">Travel Planner</h1>
             </Link>
             <nav className="flex space-x-4">
-              <Link href="/user/signin" className="text-gray-800 hover:text-blue-500 transition duration-300">Signin</Link>
+              <Link href="/user/signin" className="text-gray-800 hover:text-blue-500 transition duration-300">Sign In</Link>
               <Link href="/about" className="text-gray-800 hover:text-blue-500 transition duration-300">About</Link>
               <Link href="/contact" className="text-gray-800 hover:text-blue-500 transition duration-300">Contact</Link>
             </nav>
