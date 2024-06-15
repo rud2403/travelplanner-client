@@ -93,7 +93,11 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
               </span>
             </div>
             <Calendar
-              onChange={(range: Date[]) => onDateChange(range as [Date, Date])}
+              onChange={(value) => {
+                if (Array.isArray(value)) {
+                  onDateChange(value as [Date, Date]);
+                }
+              }}
               minDate={new Date()}
               value={dateRange}
               calendarType="gregory"
