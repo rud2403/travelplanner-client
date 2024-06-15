@@ -1,22 +1,43 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { fetchData } from '@/services/dockerTest';
+import DatePickerModal from '@/components/Modal/datePickerModal';
+import LocationPickerModal from '@/components/Modal/locationPickerModal';
+import 'react-calendar/dist/Calendar.css';
 
 export default function Home() {
-  const [response, setResponse] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [dateRange, setDateRange] = useState<[Date, Date] | null>(null);
+  const [step, setStep] = useState(1);
+  const [departure, setDeparture] = useState('');
+  const [arrival, setArrival] = useState('');
 
-  const handleCheck = async () => {
-    try {
-      const data = await fetchData();
-      setResponse(data);
-      setError(null);
-    } catch (err) {
-      setError('Error fetching data');
-      setResponse(null);
-    }
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen);
+    setStep(1); // Reset step when modal is closed
+  };
+
+  const handleDateChange = (range: [Date, Date]) => {
+    setDateRange(range);
+    setStartDate(range[0]);
+    setEndDate(range[1]);
+  };
+
+  const handleMonthChange = (direction: 'prev' | 'next') => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(currentDate.getMonth() + (direction === 'next' ? 1 : -1));
+    setCurrentDate(newDate);
+  };
+
+  const handleNextStep = () => {
+    setStep(step + 1);
+  };
+
+  const handlePreviousStep = () => {
+    setStep(step - 1);
   };
 
   return (
@@ -29,16 +50,43 @@ export default function Home() {
         </div>
 
         <div className="w-full bg-gray-100 bg-opacity-75 flex flex-col items-center justify-center p-6 z-10">
-          <p className="text-3xl md:text-4xl font-bold mb-6 text-center text-gray-800">
+          <p className="text-4xl md:text-5xl font-bold mb-6 text-center text-gray-800">
             Travel Planner와 함께 여행 일정을 짜보세요
           </p>
-          <Link href="/planning">
-          <button className="bg-blue-500 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-600 transition duration-300 text-lg md:text-xl">
+          <button
+            className="bg-blue-500 text-white font-bold py-4 px-8 rounded-full hover:bg-blue-600 transition duration-300 text-lg md:text-2xl"
+            onClick={toggleModal}
+          >
             일정 만들기
           </button>
-          </Link>
         </div>
       </section>
+
+      {/* Date Picker Modal */}
+      {isModalOpen && step === 1 && (
+        <DatePickerModal
+          currentDate={currentDate}
+          dateRange={dateRange}
+          onDateChange={handleDateChange}
+          onMonthChange={handleMonthChange}
+          onClose={toggleModal}
+          onNext={handleNextStep}
+        />
+      )}
+
+      {/* Location Picker Modal */}
+      {isModalOpen && step === 2 && (
+        <LocationPickerModal
+          departure={departure}
+          arrival={arrival}
+          setDeparture={setDeparture}
+          setArrival={setArrival}
+          onClose={toggleModal}
+          onPrevious={handlePreviousStep}
+          startDate={startDate}
+          endDate={endDate}
+        />
+      )}
     </div>
   );
 }
