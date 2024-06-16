@@ -75,7 +75,7 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-4xl">
         <style>{customStyles}</style>
-        <h2 className={`text-4xl font-bold mb-6 text-center text-gray-800`}>날짜 선택</h2>
+        <h2 className="text-4xl font-bold mb-6 text-center text-gray-800">날짜 선택</h2>
         <div className="flex items-center justify-center gap-4">
           <span
             className="cursor-pointer text-2xl text-black"
@@ -84,13 +84,9 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
             &lt;
           </span>
           <div className="flex flex-col items-center">
-            <div className={styles.calendarHeader}>
-              <span className={styles.navigationLabel} style={{ fontSize: '2rem' }}>
-                {formatMonthYear(currentDate)}
-              </span>
-              <span className={styles.navigationLabel} style={{ fontSize: '2rem' }}>
-                {formatMonthYear(nextMonthDate)}
-              </span>
+            <div className="flex justify-between w-full mb-4">
+              <span className="text-2xl font-semibold text-black w-1/2 text-center">{formatMonthYear(currentDate)}</span>
+              <span className="text-2xl font-semibold text-black w-1/2 text-center">{formatMonthYear(nextMonthDate)}</span>
             </div>
             <Calendar
               onChange={(value) => {

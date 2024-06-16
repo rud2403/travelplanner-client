@@ -18,6 +18,11 @@ export default function Home() {
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
     setStep(1); // Reset step when modal is closed
+    setStartDate(null);
+    setEndDate(null);
+    setDateRange(null);
+    setDeparture('');
+    setArrival('');
   };
 
   const handleDateChange = (range: [Date, Date]) => {
@@ -62,29 +67,29 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Date Picker Modal */}
-      {isModalOpen && step === 1 && (
-        <DatePickerModal
-          currentDate={currentDate}
-          dateRange={dateRange}
-          onDateChange={handleDateChange}
-          onMonthChange={handleMonthChange}
-          onClose={toggleModal}
-          onNext={handleNextStep}
-        />
-      )}
-
       {/* Location Picker Modal */}
-      {isModalOpen && step === 2 && (
+      {isModalOpen && step === 1 && (
         <LocationPickerModal
           departure={departure}
           arrival={arrival}
           setDeparture={setDeparture}
           setArrival={setArrival}
           onClose={toggleModal}
-          onPrevious={handlePreviousStep}
+          onNext={handleNextStep}
           startDate={startDate}
           endDate={endDate}
+        />
+      )}
+
+      {/* Date Picker Modal */}
+      {isModalOpen && step === 2 && (
+        <DatePickerModal
+          currentDate={currentDate}
+          dateRange={dateRange}
+          onDateChange={handleDateChange}
+          onMonthChange={handleMonthChange}
+          onClose={toggleModal}
+          onNext={() => alert('여행 계획이 완료되었습니다!')}
         />
       )}
     </div>

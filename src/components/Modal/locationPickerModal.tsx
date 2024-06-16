@@ -1,5 +1,4 @@
 import React from 'react';
-import Link from 'next/link';
 
 interface LocationPickerModalProps {
   departure: string;
@@ -7,7 +6,7 @@ interface LocationPickerModalProps {
   setDeparture: (value: string) => void;
   setArrival: (value: string) => void;
   onClose: () => void;
-  onPrevious: () => void;
+  onNext: () => void;
   startDate: Date | null;
   endDate: Date | null;
 }
@@ -18,7 +17,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   setDeparture,
   setArrival,
   onClose,
-  onPrevious,
+  onNext,
   startDate,
   endDate,
 }) => {
@@ -53,25 +52,16 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         <div className="mt-8 flex justify-center gap-6">
           <button
             className="bg-gray-500 text-white py-4 px-8 rounded-lg hover:bg-gray-600 transition duration-300 text-lg font-semibold"
-            onClick={onPrevious}
+            onClick={onClose}
           >
-            이전
+            취소
           </button>
-          <Link
-            href={{
-              pathname: '/planning',
-              query: {
-                startDate: formatDate(startDate),
-                endDate: formatDate(endDate),
-                departure,
-                arrival,
-              },
-            }}
+          <button
+            className="bg-blue-500 text-white py-4 px-8 rounded-lg hover:bg-blue-600 transition duration-300 text-lg font-semibold"
+            onClick={onNext}
           >
-            <button className="bg-blue-500 text-white py-4 px-8 rounded-lg hover:bg-blue-600 transition duration-300 text-lg font-semibold">
-              다음
-            </button>
-          </Link>
+            다음
+          </button>
         </div>
       </div>
     </div>
