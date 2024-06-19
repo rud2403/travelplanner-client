@@ -1,30 +1,23 @@
 import React from 'react';
+import CommonButton from '@/components/button/commonButton';
 
-interface LocationPickerModalProps {
+interface LocationPickerProps {
   departure: string;
   arrival: string;
   setDeparture: (value: string) => void;
   setArrival: (value: string) => void;
   onClose: () => void;
   onNext: () => void;
-  startDate: Date | null;
-  endDate: Date | null;
 }
 
-const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
+const LocationPicker: React.FC<LocationPickerProps> = ({
   departure,
   arrival,
   setDeparture,
   setArrival,
   onClose,
   onNext,
-  startDate,
-  endDate,
 }) => {
-  const formatDate = (date: Date | null): string | null => {
-    return date ? date.toISOString().split('T')[0] : null;
-  };
-
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-4xl">
@@ -50,22 +43,12 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
           />
         </div>
         <div className="mt-8 flex justify-center gap-6">
-          <button
-            className="bg-gray-500 text-white py-4 px-8 rounded-lg hover:bg-gray-600 transition duration-300 text-lg font-semibold"
-            onClick={onClose}
-          >
-            취소
-          </button>
-          <button
-            className="bg-blue-500 text-white py-4 px-8 rounded-lg hover:bg-blue-600 transition duration-300 text-lg font-semibold"
-            onClick={onNext}
-          >
-            다음
-          </button>
+          <CommonButton label="취소" onClick={onClose} color="gray" />
+          <CommonButton label="다음" onClick={onNext} color="blue" />
         </div>
       </div>
     </div>
   );
 };
 
-export default LocationPickerModal;
+export default LocationPicker;

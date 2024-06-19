@@ -1,9 +1,10 @@
 import React from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import styles from './datePickerModal.module.css';
+import styles from './datePicker.module.css';
+import CommonButton from '@/components/button/commonButton';
 
-interface DatePickerModalProps {
+interface DatePickerProps {
   currentDate: Date;
   dateRange: [Date, Date] | null;
   onDateChange: (range: [Date, Date]) => void;
@@ -12,7 +13,7 @@ interface DatePickerModalProps {
   onNext: () => void;
 }
 
-const DatePickerModal: React.FC<DatePickerModalProps> = ({
+const DatePicker: React.FC<DatePickerProps> = ({
   currentDate,
   dateRange,
   onDateChange,
@@ -113,22 +114,12 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
           </span>
         </div>
         <div className="mt-8 flex justify-center gap-6">
-          <button
-            className="bg-gray-500 text-white py-4 px-8 rounded-lg hover:bg-gray-600 transition duration-300 text-lg"
-            onClick={onClose}
-          >
-            취소
-          </button>
-          <button
-            className="bg-blue-500 text-white py-4 px-8 rounded-lg hover:bg-blue-600 transition duration-300 text-lg"
-            onClick={onNext}
-          >
-            다음
-          </button>
+          <CommonButton label="취소" onClick={onClose} color="gray" />
+          <CommonButton label="다음" onClick={onNext} color="blue" />
         </div>
       </div>
     </div>
   );
 };
 
-export default DatePickerModal;
+export default DatePicker;
