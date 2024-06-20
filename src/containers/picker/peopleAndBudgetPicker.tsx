@@ -25,13 +25,16 @@ const PeopleAndBudgetModal: React.FC<PeopleAndBudgetModalProps> = ({ onClose, on
       </div>
       <div className="mb-6">
         <label className="block text-2xl mb-4 font-semibold text-gray-700">예산</label>
-        <input
-          type="number"
-          className="w-full p-4 text-lg rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-          value={budget}
-          onChange={(e) => setBudget(Number(e.target.value))}
-          placeholder="예산을 입력하세요"
-        />
+        <div className="flex items-center border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-blue-500">
+          <input
+            type="input"
+            className="w-full p-4 text-lg rounded-lg focus:outline-none text-black"
+            value={budget}
+            onChange={(e) => setBudget(Number(e.target.value))}
+            placeholder="예산을 입력하세요"
+          />
+          <span className="p-4 rounded-r-lg text-black">원</span>
+        </div>
       </div>
     </PickerModal>
   );

@@ -16,7 +16,7 @@ const PickerModal: React.FC<PickerModalProps> = ({ title, children, onClose, onN
         <h2 className="text-4xl font-bold mb-6 text-center text-gray-800">{title}</h2>
         {children}
         <div className="mt-8 flex justify-center gap-6">
-          <CommonButton label="취소" onClick={onClose} color="gray" />
+          <CommonButton label="닫기" onClick={onClose} color="gray" />
           {onPrevious && <CommonButton label="이전" onClick={onPrevious} color="gray" />}
           <CommonButton label="다음" onClick={onNext} color="blue" />
         </div>
