@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import DatePickerModalContainer from '@/containers/datePickerModalContainer';
-import LocationPickerModalContainer from '@/containers/locationPickerModalContainer';
+import DatePickerModal from '@/containers/picker/datePicker';
+import LocationPickerModal from '@/containers/picker/locationPicker';
+import PeopleAndBudgetModal from '@/containers/picker/peopleAndBudgetPicker';
 import 'react-calendar/dist/Calendar.css';
 
 export default function Home() {
@@ -46,7 +47,7 @@ export default function Home() {
 
       {/* Location Picker Modal */}
       {isModalOpen && step === 1 && (
-        <LocationPickerModalContainer
+        <LocationPickerModal
           onNext={handleNextStep}
           onClose={toggleModal}
         />
@@ -54,9 +55,19 @@ export default function Home() {
 
       {/* Date Picker Modal */}
       {isModalOpen && step === 2 && (
-        <DatePickerModalContainer
+        <DatePickerModal
           onClose={toggleModal}
           onNext={handleNextStep}
+          onPrevious={handlePreviousStep}
+        />
+      )}
+
+      {/* People and Budget Modal */}
+      {isModalOpen && step === 3 && (
+        <PeopleAndBudgetModal
+          onClose={toggleModal}
+          onNext={handleNextStep}
+          onPrevious={handlePreviousStep}
         />
       )}
     </div>
