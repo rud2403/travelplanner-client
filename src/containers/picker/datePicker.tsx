@@ -8,14 +8,27 @@ interface DatePickerModalProps {
   onClose: () => void;
   onNext: () => void;
   onPrevious: () => void;
+  dateRange: [string, string] | null;
+  setDateRange: (range: [string, string] | null) => void;
 }
 
-const DatePickerModal: React.FC<DatePickerModalProps> = ({ onClose, onNext, onPrevious }) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [dateRange, setDateRange] = useState<[Date, Date] | null>(null);
+const formatDate = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
-  const handleDateChange = (range: [Date, Date]) => {
-    setDateRange(range);
+const DatePickerModal: React.FC<DatePickerModalProps> = ({ onClose, onNext, onPrevious, dateRange, setDateRange }) => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const handleDateChange = (value: Date[]) => {
+    if (value.length === 2) {
+      const [start, end] = value;
+      if (start && end) {
+        setDateRange([formatDate(start), formatDate(end)]);
+      }
+    }
   };
 
   const handleMonthChange = (direction: 'prev' | 'next') => {
@@ -38,17 +51,24 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({ onClose, onNext, onPr
     );
   };
 
+  const isWithinRange = (date: Date, start: string, end: string) => {
+    const d = new Date(date).setHours(0, 0, 0, 0);
+    const s = new Date(start).setHours(0, 0, 0, 0);
+    const e = new Date(end).setHours(23, 59, 59, 999);
+    return d >= s && d <= e;
+  };
+
   const tileClassName = ({ date, view }: { date: Date; view: string }) => {
     if (view === 'month') {
       const classes = [];
       if (dateRange) {
-        if (date >= dateRange[0] && date <= dateRange[1]) {
+        if (isWithinRange(date, dateRange[0], dateRange[1])) {
           classes.push(styles.highlight);
         }
-        if (isSameDay(date, dateRange[0])) {
+        if (isSameDay(date, new Date(dateRange[0]))) {
           classes.push(styles.startDate);
         }
-        if (isSameDay(date, dateRange[1])) {
+        if (isSameDay(date, new Date(dateRange[1]))) {
           classes.push(styles.endDate);
         }
       }
@@ -88,13 +108,9 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({ onClose, onNext, onPr
             <span className="text-2xl font-semibold text-black w-1/2 text-center">{formatMonthYear(nextMonthDate)}</span>
           </div>
           <Calendar
-            onChange={(value) => {
-              if (Array.isArray(value)) {
-                handleDateChange(value as [Date, Date]);
-              }
-            }}
+            onChange={(value) => handleDateChange(value as Date[])}
             minDate={new Date()}
-            value={dateRange}
+            value={dateRange ? [new Date(dateRange[0]), new Date(dateRange[1])] : null}
             calendarType="gregory"
             className="rounded-md border-gray-300 shadow-sm mx-auto"
             tileClassName={tileClassName}

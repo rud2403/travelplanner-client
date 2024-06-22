@@ -1,18 +1,49 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import DatePickerModal from '@/containers/picker/datePicker';
 import LocationPickerModal from '@/containers/picker/locationPicker';
 import PeopleAndBudgetModal from '@/containers/picker/peopleAndBudgetPicker';
+import { useTravelStore } from '@/store/useTravelStore';
 import 'react-calendar/dist/Calendar.css';
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [step, setStep] = useState(1);
+  const router = useRouter();
+
+  const {
+    resetState,
+    setDeparture,
+    setArrival,
+    setStartDate,
+    setEndDate,
+    setNumberOfPeople,
+    setBudget,
+  } = useTravelStore();
+
+  const [departure, setLocalDeparture] = useState('');
+  const [arrival, setLocalArrival] = useState('');
+  const [dateRange, setLocalDateRange] = useState<[string, string] | null>(null);
+  const [numberOfPeople, setLocalNumberOfPeople] = useState(1);
+  const [budget, setLocalBudget] = useState(0);
 
   const toggleModal = () => {
+    if (isModalOpen) {
+      resetState(); // Reset zustand state when modal is closed
+      setStep(1); // Reset step when modal is closed
+      resetLocalState(); // Reset local state when modal is closed
+    }
     setIsModalOpen(!isModalOpen);
-    setStep(1); // Reset step when modal is closed
+  };
+
+  const resetLocalState = () => {
+    setLocalDeparture('');
+    setLocalArrival('');
+    setLocalDateRange(null);
+    setLocalNumberOfPeople(1);
+    setLocalBudget(0);
   };
 
   const handleNextStep = () => {
@@ -21,6 +52,17 @@ export default function Home() {
 
   const handlePreviousStep = () => {
     setStep(step - 1);
+  };
+
+  const handleFinish = () => {
+    setDeparture(departure);
+    setArrival(arrival);
+    setStartDate(dateRange ? dateRange[0] : '');
+    setEndDate(dateRange ? dateRange[1] : '');
+    setNumberOfPeople(numberOfPeople);
+    setBudget(budget);
+    resetLocalState(); // Reset local state
+    router.push('/plan');
   };
 
   return (
@@ -48,6 +90,10 @@ export default function Home() {
       {/* Location Picker Modal */}
       {isModalOpen && step === 1 && (
         <LocationPickerModal
+          departure={departure}
+          setDeparture={setLocalDeparture}
+          arrival={arrival}
+          setArrival={setLocalArrival}
           onNext={handleNextStep}
           onClose={toggleModal}
         />
@@ -56,6 +102,8 @@ export default function Home() {
       {/* Date Picker Modal */}
       {isModalOpen && step === 2 && (
         <DatePickerModal
+          dateRange={dateRange}
+          setDateRange={setLocalDateRange}
           onClose={toggleModal}
           onNext={handleNextStep}
           onPrevious={handlePreviousStep}
@@ -65,8 +113,12 @@ export default function Home() {
       {/* People and Budget Modal */}
       {isModalOpen && step === 3 && (
         <PeopleAndBudgetModal
+          numberOfPeople={numberOfPeople}
+          setNumberOfPeople={setLocalNumberOfPeople}
+          budget={budget}
+          setBudget={setLocalBudget}
           onClose={toggleModal}
-          onNext={handleNextStep}
+          onNext={handleFinish}
           onPrevious={handlePreviousStep}
         />
       )}
