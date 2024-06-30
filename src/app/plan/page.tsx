@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTravelStore } from '@/store/useTravelStore';
 import MapComponent from '@/components/map/map';
 import { fetchData } from '@/services/dockerTest';
 
-export default function Planning() {
+function PlanningComponent() {
   const [response, setResponse] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
@@ -64,7 +64,7 @@ export default function Planning() {
       </aside>
 
       <section className="w-full bg-gray-50 p-6 flex flex-col items-center justify-center">
-        <div className="w-full max-w-4xl bg-white border rounded-md shadow-md p-6 text-gray-800">
+        <div className="w-full max-w-4xl bg-white border rounded-md shadow-md p-6">
           <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Welcome to Travel Planner</h1>
           <p className="text-center text-gray-600 mb-6">Plan your perfect trip to with our AI-powered travel planner.</p>
           <h2 className="text-4xl font-bold mb-6">Planning Details</h2>
@@ -93,5 +93,13 @@ export default function Planning() {
         </div>
       </section>
     </main>
+  );
+}
+
+export default function Planning() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PlanningComponent />
+    </Suspense>
   );
 }
