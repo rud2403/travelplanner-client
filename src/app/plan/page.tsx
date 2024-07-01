@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTravelStore } from '@/store/useTravelStore';
 import MapComponent from '@/components/map/map';
 import { fetchData } from '@/services/dockerTest';
 
-function PlanningComponent() {
+export default function Planning() {
   const [response, setResponse] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
@@ -46,6 +46,31 @@ function PlanningComponent() {
       setResponse(null);
     }
   };
+
+  const dayLocations = [
+    {
+      day: 1,
+      locations: [
+        { lat: 34.693738, lng: 135.502165 }, // 숙소 (오사카 성)
+        { lat: 34.705338, lng: 135.490059 }, // 우메다 스카이 빌딩
+        { lat: 34.667488, lng: 135.430238 }, // 유니버설 스튜디오 재팬
+        { lat: 34.652497, lng: 135.510400 }, // 신세카이
+        { lat: 34.669271, lng: 135.500290 }, // 도톤보리
+        { lat: 34.693738, lng: 135.502165 }, // 숙소 (오사카 성)
+      ],
+    },
+    {
+      day: 2,
+      locations: [
+        { lat: 34.693738, lng: 135.502165 }, // 숙소 (오사카 성)
+        { lat: 34.654518, lng: 135.506225 }, // 덴노지 동물원
+        { lat: 34.661346, lng: 135.520005 }, // 시텐노지
+        { lat: 34.666577, lng: 135.495953 }, // 난바 파크스
+        { lat: 34.705775, lng: 135.494911 }, // 그랜드 프론트 오사카
+        { lat: 34.693738, lng: 135.502165 }, // 숙소 (오사카 성)
+      ],
+    },
+  ];
 
   return (
     <main className="flex min-h-screen bg-gray-100">
@@ -88,18 +113,10 @@ function PlanningComponent() {
           )}
 
           <div className="mt-6">
-            <MapComponent />
+            <MapComponent dayLocations={dayLocations} />
           </div>
         </div>
       </section>
     </main>
-  );
-}
-
-export default function Planning() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <PlanningComponent />
-    </Suspense>
   );
 }
