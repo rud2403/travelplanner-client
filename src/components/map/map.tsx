@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { GoogleMap, LoadScript, Marker, Polyline } from '@react-google-maps/api';
 
 const containerStyle = {
@@ -25,15 +25,15 @@ const colors = ['#FF0000', '#0000FF', '#00FF00', '#FFFF00', '#FF00FF'];
 const MapComponent: React.FC<MapComponentProps> = ({ dayLocations }) => {
   const [map, setMap] = useState<google.maps.Map | null>(null);
 
-  const onLoad = (mapInstance: google.maps.Map) => {
-    setMap(mapInstance);
-  };
+  const onLoad = useCallback(function callback(map: google.maps.Map) {
+    setMap(map);
+  }, []);
 
-  const onUnmount = () => {
+  const onUnmount = useCallback(function callback(map: google.maps.Map) {
     setMap(null);
-  };
+  }, []);
 
-  const createCustomMarkerIcon = (color: string, label: string) => ({
+  const createCustomMarkerIcon = (color: string) => ({
     path: google.maps.SymbolPath.CIRCLE,
     fillColor: color,
     fillOpacity: 1,
@@ -43,7 +43,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations }) => {
     labelOrigin: new google.maps.Point(0, 0),
   });
 
-  const createCustomLabel = (label: string, color: string) => ({
+  const createCustomLabel = (label: string) => ({
     text: label,
     color: '#FFFFFF',
     fontSize: '12px',
@@ -56,55 +56,56 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations }) => {
         mapContainerStyle={containerStyle}
         center={dayLocations[0].locations[0]}
         zoom={14}
-        onLoad={onLoad}
-        onUnmount={onUnmount}
         options={{
           scrollwheel: true,
         }}
+        onLoad={onLoad}
+        onUnmount={onUnmount}
       >
-        {dayLocations.map((dayLocation, dayIndex) => {
-          const color = colors[dayIndex];
+        {map &&
+          dayLocations.map((dayLocation, dayIndex) => {
+            const color = colors[dayIndex];
 
-          return (
-            <React.Fragment key={dayIndex}>
-              {dayLocation.locations.map((location, index) => (
-                <Marker
-                  key={index}
-                  position={{ lat: location.lat, lng: location.lng }}
-                  icon={createCustomMarkerIcon(color, (index + 1).toString())}
-                  label={createCustomLabel((index + 1).toString(), color)}
-                />
-              ))}
-              {dayLocation.locations.map((location, index) => {
-                if (index < dayLocation.locations.length - 1) {
-                  return (
-                    <Polyline
-                      key={index}
-                      path={[dayLocation.locations[index], dayLocation.locations[index + 1]]}
-                      options={{
-                        strokeColor: color,
-                        strokeOpacity: 1,
-                        strokeWeight: 2,
-                        icons: [
-                          {
-                            icon: {
-                              path: 'M 0,-1 0,1',
-                              strokeOpacity: 1,
-                              scale: 4,
+            return (
+              <React.Fragment key={dayIndex}>
+                {dayLocation.locations.map((location, index) => (
+                  <Marker
+                    key={index}
+                    position={{ lat: location.lat, lng: location.lng }}
+                    icon={createCustomMarkerIcon(color)}
+                    label={createCustomLabel((index + 1).toString())}
+                  />
+                ))}
+                {dayLocation.locations.map((location, index) => {
+                  if (index < dayLocation.locations.length - 1) {
+                    return (
+                      <Polyline
+                        key={index}
+                        path={[dayLocation.locations[index], dayLocation.locations[index + 1]]}
+                        options={{
+                          strokeColor: color,
+                          strokeOpacity: 1,
+                          strokeWeight: 2,
+                          icons: [
+                            {
+                              icon: {
+                                path: 'M 0,-1 0,1',
+                                strokeOpacity: 1,
+                                scale: 4,
+                              },
+                              offset: '0',
+                              repeat: '10px',
                             },
-                            offset: '0',
-                            repeat: '10px',
-                          },
-                        ],
-                      }}
-                    />
-                  );
-                }
-                return null;
-              })}
-            </React.Fragment>
-          );
-        })}
+                          ],
+                        }}
+                      />
+                    );
+                  }
+                  return null;
+                })}
+              </React.Fragment>
+            );
+          })}
       </GoogleMap>
     </LoadScript>
   );

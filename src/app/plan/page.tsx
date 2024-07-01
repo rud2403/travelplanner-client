@@ -1,10 +1,38 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTravelStore } from '@/store/useTravelStore';
-import MapComponent from '@/components/map/map';
+import dynamic from 'next/dynamic';
 import { fetchData } from '@/services/dockerTest';
+
+// MapComponent를 동적 로딩하여 SSR 문제를 피합니다.
+const MapComponent = dynamic(() => import('@/components/map/map'), { ssr: false });
+
+const dayLocations = [
+  {
+    day: 1,
+    locations: [
+      { lat: 34.693738, lng: 135.502165 }, // 숙소 (오사카 성)
+      { lat: 34.705338, lng: 135.490059 }, // 우메다 스카이 빌딩
+      { lat: 34.667488, lng: 135.430238 }, // 유니버설 스튜디오 재팬
+      { lat: 34.652497, lng: 135.510400 }, // 신세카이
+      { lat: 34.669271, lng: 135.500290 }, // 도톤보리
+      { lat: 34.693738, lng: 135.502165 }, // 숙소 (오사카 성)
+    ],
+  },
+  {
+    day: 2,
+    locations: [
+      { lat: 34.693738, lng: 135.502165 }, // 숙소 (오사카 성)
+      { lat: 34.654518, lng: 135.506225 }, // 덴노지 동물원
+      { lat: 34.661346, lng: 135.520005 }, // 시텐노지
+      { lat: 34.666577, lng: 135.495953 }, // 난바 파크스
+      { lat: 34.705775, lng: 135.494911 }, // 그랜드 프론트 오사카
+      { lat: 34.693738, lng: 135.502165 }, // 숙소 (오사카 성)
+    ],
+  },
+];
 
 export default function Planning() {
   const [response, setResponse] = useState<string | null>(null);
@@ -47,31 +75,6 @@ export default function Planning() {
     }
   };
 
-  const dayLocations = [
-    {
-      day: 1,
-      locations: [
-        { lat: 34.693738, lng: 135.502165 }, // 숙소 (오사카 성)
-        { lat: 34.705338, lng: 135.490059 }, // 우메다 스카이 빌딩
-        { lat: 34.667488, lng: 135.430238 }, // 유니버설 스튜디오 재팬
-        { lat: 34.652497, lng: 135.510400 }, // 신세카이
-        { lat: 34.669271, lng: 135.500290 }, // 도톤보리
-        { lat: 34.693738, lng: 135.502165 }, // 숙소 (오사카 성)
-      ],
-    },
-    {
-      day: 2,
-      locations: [
-        { lat: 34.693738, lng: 135.502165 }, // 숙소 (오사카 성)
-        { lat: 34.654518, lng: 135.506225 }, // 덴노지 동물원
-        { lat: 34.661346, lng: 135.520005 }, // 시텐노지
-        { lat: 34.666577, lng: 135.495953 }, // 난바 파크스
-        { lat: 34.705775, lng: 135.494911 }, // 그랜드 프론트 오사카
-        { lat: 34.693738, lng: 135.502165 }, // 숙소 (오사카 성)
-      ],
-    },
-  ];
-
   return (
     <main className="flex min-h-screen bg-gray-100">
       <aside className="w-64 bg-gradient-to-b from-blue-500 to-indigo-500 text-white flex flex-col p-4 shadow-lg">
@@ -90,8 +93,8 @@ export default function Planning() {
 
       <section className="w-full bg-gray-50 p-6 flex flex-col items-center justify-center">
         <div className="w-full max-w-4xl bg-white border rounded-md shadow-md p-6">
-          <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Welcome to Travel Planner</h1>
-          <p className="text-center text-gray-600 mb-6">Plan your perfect trip to with our AI-powered travel planner.</p>
+          <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Welcome to Jeju Travel Planner</h1>
+          <p className="text-center text-gray-600 mb-6">Plan your perfect trip to Jeju with our AI-powered travel planner.</p>
           <h2 className="text-4xl font-bold mb-6">Planning Details</h2>
           <p><strong>출발지:</strong> {departure}</p>
           <p><strong>도착지:</strong> {arrival}</p>
@@ -113,7 +116,9 @@ export default function Planning() {
           )}
 
           <div className="mt-6">
-            <MapComponent dayLocations={dayLocations} />
+            <Suspense fallback={<div>Loading...</div>}>
+              <MapComponent dayLocations={dayLocations} />
+            </Suspense>
           </div>
         </div>
       </section>
