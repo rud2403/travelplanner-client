@@ -1,5 +1,7 @@
+// src/components/plan/map.tsx
 import React, { useState, useCallback } from 'react';
 import { GoogleMap, LoadScript, Marker, Polyline } from '@react-google-maps/api';
+import TravelModal from '@/components/modal/travelModal';
 
 const containerStyle = {
   width: '100%',
@@ -9,6 +11,8 @@ const containerStyle = {
 interface Location {
   lat: number;
   lng: number;
+  name: string;
+  description: string;
 }
 
 interface DayLocations {
@@ -24,6 +28,7 @@ const colors = ['#FF0000', '#0000FF', '#00FF00', '#FFFF00', '#FF00FF'];
 
 const MapComponent: React.FC<MapComponentProps> = ({ dayLocations }) => {
   const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
 
   const onLoad = useCallback(function callback(map: google.maps.Map) {
     setMap(map);
@@ -50,6 +55,14 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations }) => {
     fontWeight: 'bold',
   });
 
+  const handleMarkerClick = (location: Location) => {
+    setSelectedLocation(location);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedLocation(null);
+  };
+
   return (
     <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}>
       <GoogleMap
@@ -74,6 +87,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations }) => {
                     position={{ lat: location.lat, lng: location.lng }}
                     icon={createCustomMarkerIcon(color)}
                     label={createCustomLabel((index + 1).toString())}
+                    onClick={() => handleMarkerClick(location)}
                   />
                 ))}
                 {dayLocation.locations.map((location, index) => {
@@ -106,6 +120,22 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations }) => {
               </React.Fragment>
             );
           })}
+        {selectedLocation && (
+          <TravelModal title="Marker Information" onClose={handleCloseModal}>
+            <p>
+              <strong>Location:</strong> {selectedLocation.name}
+            </p>
+            <p>
+              <strong>Description:</strong> {selectedLocation.description}
+            </p>
+            <p>
+              <strong>Latitude:</strong> {selectedLocation.lat}
+            </p>
+            <p>
+              <strong>Longitude:</strong> {selectedLocation.lng}
+            </p>
+          </TravelModal>
+        )}
       </GoogleMap>
     </LoadScript>
   );
