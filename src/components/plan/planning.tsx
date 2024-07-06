@@ -1,16 +1,17 @@
-// src/components/plan/Planning.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useTravelStore } from '@/store/useTravelStore';
 import MapComponent from '@/components/plan/map';
-import { fetchData } from '@/services/dockerTest';
+import Timeline from '@/components/plan/timeLine'; // 새로운 타임라인 컴포넌트
+import TravelModal from '@/components/modal/travelModal'; // 새로운 모달 컴포넌트
+import { fetchData } from '@/services/dockerTest'; // fetchData 함수 가져오기
 
 const Planning = () => {
   const [response, setResponse] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const searchParams = useSearchParams();
+  const [selectedLocation, setSelectedLocation] = useState<null | { lat: number, lng: number, name: string, description: string }>(null);
   const router = useRouter();
 
   const {
@@ -20,22 +21,13 @@ const Planning = () => {
     endDate,
     numberOfPeople,
     budget,
-    setDeparture,
-    setArrival,
-    setStartDate,
-    setEndDate,
-    setNumberOfPeople,
-    setBudget,
   } = useTravelStore();
 
   useEffect(() => {
-    setDeparture(searchParams.get('departure') || '');
-    setArrival(searchParams.get('arrival') || '');
-    setStartDate(searchParams.get('startDate') || '');
-    setEndDate(searchParams.get('endDate') || '');
-    setNumberOfPeople(Number(searchParams.get('numberOfPeople')) || 1);
-    setBudget(Number(searchParams.get('budget')) || 0);
-  }, [searchParams, setDeparture, setArrival, setStartDate, setEndDate, setNumberOfPeople, setBudget]);
+    if (!departure || !arrival || !startDate || !endDate || !numberOfPeople || !budget) {
+      router.push('/'); // 데이터가 없으면 홈으로 리다이렉트
+    }
+  }, [departure, arrival, startDate, endDate, numberOfPeople, budget, router]);
 
   const handleCheck = async () => {
     try {
@@ -75,29 +67,18 @@ const Planning = () => {
       day: 3,
       locations: [
         { lat: 34.693738, lng: 135.502165, name: 'Osaka Castle', description: '숙소 (오사카 성)' },
-        { lat: 35.011636, lng: 135.768029, name: 'Kiyomizu-dera', description: '기요미즈데라' },
-        { lat: 35.039414, lng: 135.729243, name: 'Arashiyama Bamboo Grove', description: '아라시야마 대나무숲' },
-        { lat: 35.003704, lng: 135.775204, name: 'Fushimi Inari-taisha', description: '후시미 이나리 신사' },
-        { lat: 35.028011, lng: 135.794962, name: 'Nijo Castle', description: '니조 성' },
-        { lat: 35.011636, lng: 135.768029, name: 'Kyoto Station', description: '숙소 (교토역)' },
-      ],
-    },
-    {
-      day: 4,
-      locations: [
-        { lat: 35.011636, lng: 135.768029, name: 'Kyoto Station', description: '숙소 (교토역)' },
-        { lat: 35.015509, lng: 135.748181, name: 'Nishiki Market', description: '니시키 시장' },
-        { lat: 35.003611, lng: 135.775278, name: 'Tofuku-ji', description: '도후쿠지' },
-        { lat: 35.016206, lng: 135.748528, name: 'Gion', description: '기온' },
-        { lat: 35.037643, lng: 135.725227, name: 'Kinkaku-ji', description: '금각사' },
-        { lat: 35.011636, lng: 135.768029, name: 'Kyoto Station', description: '숙소 (교토역)' },
+        { lat: 35.039389, lng: 135.729243, name: 'Arashiyama Bamboo Grove', description: '아라시야마 대나무 숲' },
+        { lat: 35.003707, lng: 135.775367, name: 'Kiyomizu-dera', description: '기요미즈데라' },
+        { lat: 35.005377, lng: 135.780928, name: 'Sanjusangendo', description: '산쥬산겐도' },
+        { lat: 35.030555, lng: 135.756892, name: 'Gion', description: '기온' },
+        { lat: 34.693738, lng: 135.502165, name: 'Osaka Castle', description: '숙소 (오사카 성)' },
       ],
     },
   ];
 
-
   return (
     <main className="flex min-h-screen bg-gray-100">
+      {/* 사이드 */}
       <aside className="w-64 bg-gradient-to-b from-blue-500 to-indigo-500 text-white flex flex-col p-4 shadow-lg">
         <nav className="flex flex-col space-y-4">
           <button onClick={handleCheck} className="bg-white text-blue-500 hover:bg-gray-100 hover:text-blue-600 font-bold py-2 px-4 rounded-md transition duration-300">
@@ -112,18 +93,15 @@ const Planning = () => {
         </nav>
       </aside>
 
-      <section className="w-full bg-gray-50 p-6 flex flex-col items-center justify-center">
-        <div className="w-full max-w-4xl bg-white border rounded-md shadow-md p-6 text-gray-800">
-          <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Welcome to Jeju Travel Planner</h1>
-          <p className="text-center text-gray-600 mb-6">Plan your perfect trip to Jeju with our AI-powered travel planner.</p>
-          <h2 className="text-4xl font-bold mb-6">Planning Details</h2>
-          <p><strong>여행지:</strong> {arrival}</p>
-          <p><strong>여행 시작일:</strong> {startDate}</p>
-          <p><strong>여행 종료일:</strong> {endDate}</p>
+      {/* 메인 */}
+      <section className="w-full bg-gray-50 p-6 flex flex-col text-gray-800">
+        <div className="w-full max-w-6xl mb-4">
+          <h2 className="text-4xl font-bold mb-6">여행지 : {arrival}</h2>
+          <p><strong>여행일:</strong> {startDate} ~ {endDate}</p>
           <p><strong>인원수:</strong> {numberOfPeople}</p>
           <p><strong>예산:</strong> {budget} 원</p>
 
-          {/* {response && (
+          {response && (
             <div className="mt-4 p-4 bg-green-100 text-green-800 rounded-md">
               <p>Response:</p>
               <pre>{JSON.stringify(response, null, 2)}</pre>
@@ -133,13 +111,28 @@ const Planning = () => {
             <div className="mt-4 p-4 bg-red-100 text-red-800 rounded-md">
               <p>{error}</p>
             </div>
-          )} */}
-
-          <div className="mt-6">
-            <MapComponent dayLocations={dayLocations} />
-          </div>
+          )}
+        </div>
+        <div className="flex-grow flex">
+          {/* 타임라인 */}
+          <section className="w-1/3 pr-6 text-gray-800">
+            <Timeline dayLocations={dayLocations} />
+          </section>
+          {/* 지도 */}
+          <section className="w-2/3 flex-grow">
+            <div className="w-full h-full bg-white border rounded-md shadow-md p-6">
+              <MapComponent dayLocations={dayLocations} onMarkerClick={setSelectedLocation} />
+            </div>
+          </section>
         </div>
       </section>
+      
+      {selectedLocation && (
+        <TravelModal
+          location={selectedLocation}
+          onClose={() => setSelectedLocation(null)}
+        />
+      )}
     </main>
   );
 };

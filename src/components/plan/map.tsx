@@ -1,11 +1,9 @@
-// src/components/plan/map.tsx
-import React, { useState, useCallback } from 'react';
-import { GoogleMap, LoadScript, Marker, Polyline } from '@react-google-maps/api';
-import TravelModal from '@/components/modal/travelModal';
+import React, { useState, useEffect, useCallback } from 'react';
+import { GoogleMap, Marker, Polyline } from '@react-google-maps/api';
 
 const containerStyle = {
   width: '100%',
-  height: '400px',
+  height: '100%',
 };
 
 interface Location {
@@ -22,30 +20,39 @@ interface DayLocations {
 
 interface MapComponentProps {
   dayLocations: DayLocations[];
+  onMarkerClick: (location: Location) => void;
 }
 
 const colors = ['#FF0000', '#0000FF', '#00FF00', '#FFFF00', '#FF00FF'];
 
-const MapComponent: React.FC<MapComponentProps> = ({ dayLocations }) => {
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick }) => {
+  const [mapLoaded, setMapLoaded] = useState(false);
 
-  const onLoad = useCallback(function callback(map: google.maps.Map) {
-    setMap(map);
-  }, []);
+  useEffect(() => {
+    const existingScript = document.getElementById('googleMaps');
 
-  const onUnmount = useCallback(function callback(map: google.maps.Map) {
-    setMap(null);
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`;
+      script.id = 'googleMaps';
+      document.body.appendChild(script);
+
+      script.onload = () => {
+        setMapLoaded(true);
+      };
+    } else {
+      setMapLoaded(true);
+    }
   }, []);
 
   const createCustomMarkerIcon = (color: string) => ({
-    path: google.maps.SymbolPath.CIRCLE,
+    path: window.google.maps.SymbolPath.CIRCLE,
     fillColor: color,
     fillOpacity: 1,
     strokeColor: '#000',
     strokeWeight: 1,
     scale: 10,
-    labelOrigin: new google.maps.Point(0, 0),
+    labelOrigin: new window.google.maps.Point(0, 0),
   });
 
   const createCustomLabel = (label: string) => ({
@@ -55,30 +62,19 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations }) => {
     fontWeight: 'bold',
   });
 
-  const handleMarkerClick = (location: Location) => {
-    setSelectedLocation(location);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedLocation(null);
-  };
-
   return (
-    <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}>
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={dayLocations[0].locations[0]}
-        zoom={14}
-        options={{
-          scrollwheel: true,
-        }}
-        onLoad={onLoad}
-        onUnmount={onUnmount}
-      >
-        {map &&
-          dayLocations.map((dayLocation, dayIndex) => {
+    <>
+      {mapLoaded && (
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={dayLocations[0].locations[0]}
+          zoom={14}
+          options={{
+            scrollwheel: true,
+          }}
+        >
+          {dayLocations.map((dayLocation, dayIndex) => {
             const color = colors[dayIndex];
-
             return (
               <React.Fragment key={dayIndex}>
                 {dayLocation.locations.map((location, index) => (
@@ -87,7 +83,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations }) => {
                     position={{ lat: location.lat, lng: location.lng }}
                     icon={createCustomMarkerIcon(color)}
                     label={createCustomLabel((index + 1).toString())}
-                    onClick={() => handleMarkerClick(location)}
+                    onClick={() => onMarkerClick(location)}
                   />
                 ))}
                 {dayLocation.locations.map((location, index) => {
@@ -120,24 +116,9 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations }) => {
               </React.Fragment>
             );
           })}
-        {selectedLocation && (
-          <TravelModal title="Marker Information" onClose={handleCloseModal}>
-            <p>
-              <strong>Location:</strong> {selectedLocation.name}
-            </p>
-            <p>
-              <strong>Description:</strong> {selectedLocation.description}
-            </p>
-            <p>
-              <strong>Latitude:</strong> {selectedLocation.lat}
-            </p>
-            <p>
-              <strong>Longitude:</strong> {selectedLocation.lng}
-            </p>
-          </TravelModal>
-        )}
-      </GoogleMap>
-    </LoadScript>
+        </GoogleMap>
+      )}
+    </>
   );
 };
 
