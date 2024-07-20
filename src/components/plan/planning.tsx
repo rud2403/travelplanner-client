@@ -6,12 +6,13 @@ import { useTravelStore } from '@/store/useTravelStore';
 import MapComponent from '@/components/plan/map';
 import Timeline from '@/components/plan/timeLine'; // 새로운 타임라인 컴포넌트
 import TravelModal from '@/components/modal/travelModal'; // 새로운 모달 컴포넌트
-import dayLocationsData, { TravelLocation } from '@/services/dayLocations'; // 데이터 임포트 및 타입 임포트
+import dayLocationsData from '@/services/dayLocations'; // 데이터 임포트
+import { TravelLocation } from '@/services/dayLocations'; // 추가된 부분
 
 const Planning = () => {
   const [response, setResponse] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<TravelLocation | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<TravelLocation | null>(null); // 수정된 부분
   const router = useRouter();
 
   const {
@@ -20,8 +21,8 @@ const Planning = () => {
     endDate,
     numberOfPeople,
     budget,
-    setDayLocations, // 추가
-    dayLocations, // 추가
+    setDayLocations,
+    dayLocations,
     setFocusedLocation,
     setFocusedRoute,
   } = useTravelStore();
@@ -43,10 +44,8 @@ const Planning = () => {
   };
 
   const handleRouteMouseEnter = (from: string, to: string) => {
-    const route = dayLocations.flatMap(day => day.routes).find(route => route.from === from && route.to === to);
-    if (route) {
-      setFocusedRoute(route);
-    }
+    const route = dayLocations.flatMap(day => day.routes).find(r => r.from === from && r.to === to);
+    setFocusedRoute(route || null);
   };
 
   const handleRouteMouseLeave = () => {
@@ -59,6 +58,10 @@ const Planning = () => {
 
   const handleLocationMouseLeave = () => {
     setFocusedLocation(null);
+  };
+
+  const handleLocationClick = (location: TravelLocation) => {
+    setSelectedLocation(location);
   };
 
   return (
@@ -107,12 +110,13 @@ const Planning = () => {
               onRouteMouseLeave={handleRouteMouseLeave}
               onLocationMouseEnter={handleLocationMouseEnter}
               onLocationMouseLeave={handleLocationMouseLeave}
+              onLocationClick={handleLocationClick} // 추가된 부분
             />
           </section>
           {/* 지도 */}
           <section className="w-2/3 flex-grow">
             <div className="w-full h-full bg-white border rounded-md shadow-md p-6">
-              <MapComponent dayLocations={dayLocations} onMarkerClick={setSelectedLocation} />
+              <MapComponent dayLocations={dayLocations} onMarkerClick={handleLocationClick} />
             </div>
           </section>
         </div>

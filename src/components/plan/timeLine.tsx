@@ -6,8 +6,9 @@ interface TimelineProps {
   onRouteClick: (from: string, to: string) => void;
   onRouteMouseEnter: (from: string, to: string) => void;
   onRouteMouseLeave: () => void;
-  onLocationMouseEnter: (location: TravelLocation) => void; // 수정된 부분
-  onLocationMouseLeave: () => void; // 수정된 부분
+  onLocationMouseEnter: (location: TravelLocation) => void;
+  onLocationMouseLeave: () => void;
+  onLocationClick: (location: TravelLocation) => void; // 추가된 부분
 }
 
 const TimeLine: React.FC<TimelineProps> = ({
@@ -16,6 +17,7 @@ const TimeLine: React.FC<TimelineProps> = ({
   onRouteMouseLeave,
   onLocationMouseEnter,
   onLocationMouseLeave,
+  onLocationClick, // 추가된 부분
 }) => {
   const dayLocations = useTravelStore((state) => state.dayLocations);
 
@@ -39,9 +41,10 @@ const TimeLine: React.FC<TimelineProps> = ({
             {dayLocation.locations.map((location, locIndex) => (
               <React.Fragment key={locIndex}>
                 <li
-                  className="flex items-center space-x-2"
-                  onMouseEnter={() => onLocationMouseEnter(location)} // 수정된 부분
-                  onMouseLeave={onLocationMouseLeave} // 수정된 부분
+                  className="flex items-center space-x-2 cursor-pointer"
+                  onMouseEnter={() => onLocationMouseEnter(location)}
+                  onMouseLeave={onLocationMouseLeave}
+                  onClick={() => onLocationClick(location)} // 추가된 부분
                 >
                   <div className="flex items-center justify-center w-8 h-8 rounded-full text-white font-bold" style={{ backgroundColor: colors[dayIndex] }}>
                     {locIndex + 1}
