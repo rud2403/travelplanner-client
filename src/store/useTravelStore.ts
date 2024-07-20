@@ -4,8 +4,7 @@ import { devtools } from 'zustand/middleware';
 import { DayLocations, Route, TravelLocation } from '@/services/dayLocations';
 
 interface TravelState {
-  departure: string;
-  arrival: string;
+  destination: string;
   startDate: string;
   endDate: string;
   numberOfPeople: number;
@@ -13,8 +12,7 @@ interface TravelState {
   dayLocations: DayLocations[];
   focusedLocation: TravelLocation | null;
   focusedRoute: Route | null;
-  setDeparture: (departure: string) => void;
-  setArrival: (arrival: string) => void;
+  setDestination: (destination: string) => void; // 여행지 설정 함수
   setStartDate: (startDate: string) => void;
   setEndDate: (endDate: string) => void;
   setNumberOfPeople: (numberOfPeople: number) => void;
@@ -27,8 +25,7 @@ interface TravelState {
 
 export const useTravelStore = create<TravelState>()(
   devtools((set) => ({
-    departure: '',
-    arrival: '',
+    destination: '',
     startDate: '',
     endDate: '',
     numberOfPeople: 1,
@@ -36,8 +33,7 @@ export const useTravelStore = create<TravelState>()(
     dayLocations: [],
     focusedLocation: null,
     focusedRoute: null,
-    setDeparture: (departure) => set({ departure }),
-    setArrival: (arrival) => set({ arrival }),
+    setDestination: (destination) => set({ destination }), // 여행지 설정
     setStartDate: (startDate) => set({ startDate }),
     setEndDate: (endDate) => set({ endDate }),
     setNumberOfPeople: (numberOfPeople) => set({ numberOfPeople }),
@@ -47,8 +43,7 @@ export const useTravelStore = create<TravelState>()(
     setFocusedRoute: (route) => set({ focusedRoute: route }),
     resetState: () =>
       set({
-        departure: '',
-        arrival: '',
+        destination: '',
         startDate: '',
         endDate: '',
         numberOfPeople: 1,

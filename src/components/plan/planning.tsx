@@ -15,8 +15,7 @@ const Planning = () => {
   const router = useRouter();
 
   const {
-    departure,
-    arrival,
+    destination,
     startDate,
     endDate,
     numberOfPeople,
@@ -28,12 +27,12 @@ const Planning = () => {
   } = useTravelStore();
 
   useEffect(() => {
-    if (!departure || !arrival || !startDate || !endDate || !numberOfPeople || !budget) {
+    if (!destination || !startDate || !endDate || !numberOfPeople || !budget) {
       router.push('/'); // 데이터가 없으면 홈으로 리다이렉트
     } else {
       setDayLocations(dayLocationsData); // dayLocations 설정
     }
-  }, [departure, arrival, startDate, endDate, numberOfPeople, budget, router, setDayLocations]);
+  }, [destination, startDate, endDate, numberOfPeople, budget, router, setDayLocations]);
 
   const handleRouteClick = (from: string, to: string) => {
     const fromLocation = dayLocations.flatMap(day => day.locations).find(loc => loc.name === from);
@@ -82,7 +81,7 @@ const Planning = () => {
       {/* 메인 */}
       <section className="w-full bg-gray-50 p-6 flex flex-col text-gray-800">
         <div className="w-full max-w-6xl mb-4">
-          <h2 className="text-4xl font-bold mb-6">여행지 : {arrival}</h2>
+          <h2 className="text-4xl font-bold mb-6">여행지 : {destination}</h2>
           <p><strong>여행일:</strong> {startDate} ~ {endDate}</p>
           <p><strong>인원수:</strong> {numberOfPeople}</p>
           <p><strong>예산:</strong> {budget} 원</p>

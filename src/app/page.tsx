@@ -16,16 +16,14 @@ export default function Home() {
 
   const {
     resetState,
-    setDeparture,
-    setArrival,
+    setDestination,
     setStartDate,
     setEndDate,
     setNumberOfPeople,
     setBudget,
   } = useTravelStore();
 
-  const [departure, setLocalDeparture] = useState('');
-  const [arrival, setLocalArrival] = useState('');
+  const [destination, setLocalDestination] = useState('');
   const [dateRange, setLocalDateRange] = useState<[string, string] | null>(null);
   const [numberOfPeople, setLocalNumberOfPeople] = useState(1);
   const [budget, setLocalBudget] = useState(0);
@@ -40,8 +38,7 @@ export default function Home() {
   };
 
   const resetLocalState = () => {
-    setLocalDeparture('');
-    setLocalArrival('');
+    setLocalDestination('');
     setLocalDateRange(null);
     setLocalNumberOfPeople(1);
     setLocalBudget(0);
@@ -56,8 +53,7 @@ export default function Home() {
   };
 
   const handleFinish = () => {
-    setDeparture(departure);
-    setArrival(arrival);
+    setDestination(destination);
     setStartDate(dateRange ? dateRange[0] : '');
     setEndDate(dateRange ? dateRange[1] : '');
     setNumberOfPeople(numberOfPeople);
@@ -91,10 +87,8 @@ export default function Home() {
       {/* Location Picker Modal */}
       {isModalOpen && step === 1 && (
         <LocationPickerModal
-          departure={departure}
-          setDeparture={setLocalDeparture}
-          arrival={arrival}
-          setArrival={setLocalArrival}
+          destination={destination}
+          setDestination={setLocalDestination}
           onNext={handleNextStep}
           onClose={toggleModal}
         />
