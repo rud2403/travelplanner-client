@@ -1,32 +1,24 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GoogleMap, Marker, Polyline } from '@react-google-maps/api';
+import { useTravelStore } from '@/store/useTravelStore';
+import { DayLocations, TravelLocation, Route } from '@/services/dayLocations';
 
 const containerStyle = {
   width: '100%',
   height: '100%',
 };
 
-interface Location {
-  lat: number;
-  lng: number;
-  name: string;
-  description: string;
-}
-
-interface DayLocations {
-  day: number;
-  locations: Location[];
-}
-
 interface MapComponentProps {
   dayLocations: DayLocations[];
-  onMarkerClick: (location: Location) => void;
+  onMarkerClick: (location: TravelLocation) => void;
 }
 
 const colors = ['#FF0000', '#0000FF', '#00FF00', '#FFFF00', '#FF00FF'];
 
 const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick }) => {
   const [mapLoaded, setMapLoaded] = useState(false);
+  const focusedLocation = useTravelStore((state) => state.focusedLocation);
+  const focusedRoute = useTravelStore((state) => state.focusedRoute);
 
   useEffect(() => {
     const existingScript = document.getElementById('googleMaps');
@@ -45,13 +37,13 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick
     }
   }, []);
 
-  const createCustomMarkerIcon = (color: string) => ({
+  const createCustomMarkerIcon = (color: string, isFocused: boolean) => ({
     path: window.google.maps.SymbolPath.CIRCLE,
-    fillColor: color,
+    fillColor: isFocused ? '#FFFF00' : color,
     fillOpacity: 1,
     strokeColor: '#000',
-    strokeWeight: 1,
-    scale: 10,
+    strokeWeight: isFocused ? 3 : 1,
+    scale: isFocused ? 12 : 10,
     labelOrigin: new window.google.maps.Point(0, 0),
   });
 
@@ -67,7 +59,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick
       {mapLoaded && (
         <GoogleMap
           mapContainerStyle={containerStyle}
-          center={dayLocations[0].locations[0]}
+          center={dayLocations[0]?.locations[0] || { lat: 0, lng: 0 }}
           zoom={14}
           options={{
             scrollwheel: true,
@@ -81,21 +73,24 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick
                   <Marker
                     key={index}
                     position={{ lat: location.lat, lng: location.lng }}
-                    icon={createCustomMarkerIcon(color)}
+                    icon={createCustomMarkerIcon(color, focusedLocation?.name === location.name)}
                     label={createCustomLabel((index + 1).toString())}
                     onClick={() => onMarkerClick(location)}
                   />
                 ))}
-                {dayLocation.locations.map((location, index) => {
-                  if (index < dayLocation.locations.length - 1) {
+                {dayLocation.routes.map((route, index) => {
+                  const fromLocation = dayLocation.locations.find(loc => loc.name === route.from) || null;
+                  const toLocation = dayLocation.locations.find(loc => loc.name === route.to) || null;
+
+                  if (fromLocation && toLocation) {
                     return (
                       <Polyline
                         key={index}
-                        path={[dayLocation.locations[index], dayLocation.locations[index + 1]]}
+                        path={[fromLocation, toLocation]}
                         options={{
-                          strokeColor: color,
+                          strokeColor: focusedRoute?.from === route.from && focusedRoute?.to === route.to ? '#FFFF00' : color,
                           strokeOpacity: 1,
-                          strokeWeight: 2,
+                          strokeWeight: focusedRoute?.from === route.from && focusedRoute?.to === route.to ? 4 : 2,
                           icons: [
                             {
                               icon: {

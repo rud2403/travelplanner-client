@@ -1,76 +1,70 @@
 import React from 'react';
-
-interface Location {
-  lat: number;
-  lng: number;
-  name: string;
-  description: string;
-  startTime: string;
-  endTime: string;
-}
-
-interface Route {
-  from: string;
-  to: string;
-  method: number;
-  time: string;
-}
-
-interface DayLocations {
-  day: number;
-  locations: Location[];
-  routes: Route[];
-}
+import { useTravelStore } from '@/store/useTravelStore';
+import { TravelLocation, Route } from '@/services/dayLocations';
 
 interface TimelineProps {
-  dayLocations: DayLocations[];
+  onRouteClick: (from: string, to: string) => void;
+  onRouteMouseEnter: (from: string, to: string) => void;
+  onRouteMouseLeave: () => void;
+  onLocationMouseEnter: (location: TravelLocation) => void; // 수정된 부분
+  onLocationMouseLeave: () => void; // 수정된 부분
 }
 
-const colors = ['#FF0000', '#0000FF', '#00FF00', '#FFFF00', '#FF00FF'];
+const TimeLine: React.FC<TimelineProps> = ({
+  onRouteClick,
+  onRouteMouseEnter,
+  onRouteMouseLeave,
+  onLocationMouseEnter,
+  onLocationMouseLeave,
+}) => {
+  const dayLocations = useTravelStore((state) => state.dayLocations);
 
-const methodToString = (method: number) => {
-  switch (method) {
-    case 1:
-      return '자동차';
-    case 2:
-      return '대중교통';
-    case 3:
-      return '도보';
-    default:
-      return '';
-  }
-};
+  const methodToText = (method: number) => {
+    switch (method) {
+      case 1: return '자동차';
+      case 2: return '대중교통';
+      case 3: return '도보';
+      default: return '';
+    }
+  };
 
-const Timeline: React.FC<TimelineProps> = ({ dayLocations }) => {
+  const colors = ['#FF0000', '#0000FF', '#00FF00', '#FFFF00', '#FF00FF'];
+
   return (
-    <div className="flex space-x-8 overflow-x-auto bg-white p-6 rounded-md shadow-lg">
+    <div className="flex space-x-4 overflow-x-auto">
       {dayLocations.map((dayLocation, dayIndex) => (
-        <div key={dayLocation.day} className="min-w-[250px]">
-          <h3 className="text-2xl font-bold mb-6 text-center text-gray-700">Day {dayLocation.day}</h3>
-          <ul className="space-y-6">
+        <div key={dayLocation.day} className="flex-1 bg-white p-4 rounded-md shadow-md min-w-[250px]">
+          <h3 className="text-2xl font-bold mb-4 text-center" style={{ color: colors[dayIndex] }}>Day {dayLocation.day}</h3>
+          <ul className="space-y-4">
             {dayLocation.locations.map((location, locIndex) => (
-              <li key={locIndex} className="flex flex-col items-start space-y-2">
-                <div className="flex items-center space-x-4">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white text-lg font-bold"
-                    style={{ backgroundColor: colors[dayIndex] }}
-                  >
+              <React.Fragment key={locIndex}>
+                <li
+                  className="flex items-center space-x-2"
+                  onMouseEnter={() => onLocationMouseEnter(location)} // 수정된 부분
+                  onMouseLeave={onLocationMouseLeave} // 수정된 부분
+                >
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full text-white font-bold" style={{ backgroundColor: colors[dayIndex] }}>
                     {locIndex + 1}
                   </div>
                   <div>
-                    <span className="font-semibold text-lg text-gray-800">{location.name}</span>
-                    <p className="text-sm text-gray-600">
-                      {location.description} ({location.startTime} - {location.endTime})
-                    </p>
+                    <span className="font-semibold">{location.name}</span>
+                    <span> ({location.startTime} ~ {location.endTime})</span>
+                    <p className="text-sm text-gray-600">{location.description}</p>
                   </div>
-                </div>
-                {locIndex < dayLocation.routes.length && (
-                  <div className="ml-14 pl-4 border-l-2 border-gray-300 text-gray-600">
-                    <span className="block">{methodToString(dayLocation.routes[locIndex].method)}</span>
-                    <span>{dayLocation.routes[locIndex].time}</span>
-                  </div>
+                </li>
+                {dayLocation.routes[locIndex] && (
+                  <li className="flex items-center space-x-2">
+                    <div
+                      className="cursor-pointer text-blue-500"
+                      onClick={() => onRouteClick(dayLocation.routes[locIndex].from, dayLocation.routes[locIndex].to)}
+                      onMouseEnter={() => onRouteMouseEnter(dayLocation.routes[locIndex].from, dayLocation.routes[locIndex].to)}
+                      onMouseLeave={onRouteMouseLeave}
+                    >
+                      {methodToText(dayLocation.routes[locIndex].method)} ({dayLocation.routes[locIndex].time})
+                    </div>
+                  </li>
                 )}
-              </li>
+              </React.Fragment>
             ))}
           </ul>
         </div>
@@ -79,4 +73,4 @@ const Timeline: React.FC<TimelineProps> = ({ dayLocations }) => {
   );
 };
 
-export default Timeline;
+export default TimeLine;
