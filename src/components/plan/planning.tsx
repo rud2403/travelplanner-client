@@ -83,24 +83,33 @@ const Planning = () => {
 
       {/* 메인 */}
       <section className="w-full bg-gray-50 p-6 flex flex-col text-gray-800">
-        <div className="w-full max-w-6xl mb-4">
-          <h2 className="text-4xl font-bold mb-6">여행지 : {destination}</h2>
-          <p><strong>여행일:</strong> {startDate} ~ {endDate}</p>
-          <p><strong>인원수:</strong> {numberOfPeople}</p>
-          <p><strong>예산:</strong> {budget} 원</p>
-
-          {response && (
-            <div className="mt-4 p-4 bg-green-100 text-green-800 rounded-md">
-              <p>Response:</p>
-              <pre>{JSON.stringify(response, null, 2)}</pre>
+        <div className="w-full max-w-6xl mb-4 p-6 text-center">
+          <div className="mb-2">
+            <h2 className="text-4xl font-bold text-blue-600">{destination}</h2>
+          </div>
+          <div className="mb-6">
+            <p className="text-sm text-gray-600">{startDate} ~ {endDate}</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-center">
+            <div>
+              <p className="text-xl font-semibold"><strong>인원수:</strong> {numberOfPeople}명</p>
+              <p className="text-xl font-semibold"><strong>예산:</strong> {budget.toLocaleString()} 원</p>
             </div>
-          )}
-          {error && (
-            <div className="mt-4 p-4 bg-red-100 text-red-800 rounded-md">
-              <p>{error}</p>
-            </div>
-          )}
+            {response && (
+              <div className="mt-4 p-4 bg-green-100 text-green-800 rounded-md">
+                <p className="font-bold">Response:</p>
+                <pre>{JSON.stringify(response, null, 2)}</pre>
+              </div>
+            )}
+            {error && (
+              <div className="mt-4 p-4 bg-red-100 text-red-800 rounded-md">
+                <p className="font-bold">Error:</p>
+                <pre>{error}</pre>
+              </div>
+            )}
+          </div>
         </div>
+
         <div className="flex-grow flex">
           {/* 타임라인 */}
           <section className="w-1/3 pr-6 text-gray-800">
