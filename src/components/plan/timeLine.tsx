@@ -6,7 +6,7 @@ interface TimelineProps {
   onRouteClick: (from: string, to: string) => void;
   onRouteMouseEnter: (from: string, to: string) => void;
   onRouteMouseLeave: () => void;
-  onLocationMouseEnter: (location: TravelLocation) => void;
+  // onLocationMouseEnter: (location: TravelLocation) => void;
   onLocationMouseLeave: () => void;
   onLocationClick: (location: TravelLocation) => void;
 }
@@ -15,7 +15,7 @@ const TimeLine: React.FC<TimelineProps> = ({
   onRouteClick,
   onRouteMouseEnter,
   onRouteMouseLeave,
-  onLocationMouseEnter,
+  // onLocationMouseEnter,
   onLocationMouseLeave,
   onLocationClick,
 }) => {
@@ -42,8 +42,6 @@ const TimeLine: React.FC<TimelineProps> = ({
 
   const colors = ['#FF5733', '#33C1FF', '#33FF57', '#FFC133', '#C133FF', '#FF33A6', '#33FFD1', '#FF8F33', '#33FF8F', '#8F33FF'];
 
-  const totalBudget = dayLocations.reduce((sum, day) => sum + day.daily_budget, 0);
-
   return (
     <div className="flex flex-col p-4">
       <div className="flex space-x-4 overflow-x-auto">
@@ -57,7 +55,7 @@ const TimeLine: React.FC<TimelineProps> = ({
                   <React.Fragment key={locIndex}>
                     <li
                       className="flex items-center space-x-4 cursor-pointer hover:bg-gray-100 p-3 rounded-md transition duration-300"
-                      onMouseEnter={() => onLocationMouseEnter(location)}
+                      // onMouseEnter={() => onLocationMouseEnter(location)}
                       onMouseLeave={onLocationMouseLeave}
                       onClick={() => onLocationClick(location)}
                     >
@@ -69,7 +67,6 @@ const TimeLine: React.FC<TimelineProps> = ({
                         <span className="block text-sm text-gray-500">({location.startTime} ~ {location.endTime})</span>
                         <p className="text-sm text-gray-700">{location.description}</p>
                         <p className="text-sm text-gray-500">유형: {typeToText(location.type)}</p>
-                        <p className="text-sm text-gray-800 font-semibold">비용: {location.budget.toLocaleString()} 원</p>
                       </div>
                     </li>
                     {dayLocation.routes[locIndex] && (
@@ -88,14 +85,8 @@ const TimeLine: React.FC<TimelineProps> = ({
                 ))}
               </ul>
             </div>
-            <div className="text-right mt-6">
-              <span className="font-semibold text-lg">일일 예산: {dayLocation.daily_budget.toLocaleString()} 원</span>
-            </div>
           </div>
         ))}
-      </div>
-      <div className="mt-8 text-right">
-        <span className="font-bold text-xl">전체 비용: {totalBudget.toLocaleString()} 원</span>
       </div>
     </div>
   );

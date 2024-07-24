@@ -19,8 +19,6 @@ const Planning = () => {
     destination,
     startDate,
     endDate,
-    numberOfPeople,
-    budget,
     setDayLocations,
     dayLocations,
     setFocusedLocation,
@@ -28,12 +26,12 @@ const Planning = () => {
   } = useTravelStore();
 
   useEffect(() => {
-    if (!destination || !startDate || !endDate || !numberOfPeople || !budget) {
+    if (!destination || !startDate || !endDate) {
       router.push('/'); // 데이터가 없으면 홈으로 리다이렉트
     } else {
       setDayLocations(dayLocationsData); // dayLocations 설정
     }
-  }, [destination, startDate, endDate, numberOfPeople, budget, router, setDayLocations]);
+  }, [destination, startDate, endDate, router, setDayLocations]);
 
   const handleRouteClick = (from: string, to: string) => {
     const fromLocation = dayLocations.flatMap(day => day.locations).find(loc => loc.name === from);
@@ -52,16 +50,20 @@ const Planning = () => {
     setFocusedRoute(null);
   };
 
-  const handleLocationMouseEnter = (location: TravelLocation) => {
-    setFocusedLocation(location);
-  };
+  // const handleLocationMouseEnter = (location: TravelLocation) => {
+  //   setFocusedLocation(location);
+  // };
 
   const handleLocationMouseLeave = () => {
     setFocusedLocation(null);
   };
 
   const handleLocationClick = (location: TravelLocation) => {
-    setSelectedLocation(location);
+    setFocusedLocation(location); // 타임라인 클릭 시 지도 위치 이동
+  };
+
+  const handleMarkerClick = (location: TravelLocation) => {
+    setSelectedLocation(location); // 마커 클릭 시 모달 열기
   };
 
   return (
@@ -91,10 +93,6 @@ const Planning = () => {
             <p className="text-sm text-gray-600">{startDate} ~ {endDate}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-center">
-            <div>
-              <p className="text-xl font-semibold"><strong>인원수:</strong> {numberOfPeople}명</p>
-              <p className="text-xl font-semibold"><strong>예산:</strong> {budget.toLocaleString()} 원</p>
-            </div>
             {response && (
               <div className="mt-4 p-4 bg-green-100 text-green-800 rounded-md">
                 <p className="font-bold">Response:</p>
@@ -117,7 +115,7 @@ const Planning = () => {
               onRouteClick={handleRouteClick}
               onRouteMouseEnter={handleRouteMouseEnter}
               onRouteMouseLeave={handleRouteMouseLeave}
-              onLocationMouseEnter={handleLocationMouseEnter}
+              // onLocationMouseEnter={handleLocationMouseEnter}
               onLocationMouseLeave={handleLocationMouseLeave}
               onLocationClick={handleLocationClick} // 추가된 부분
             />
@@ -125,7 +123,7 @@ const Planning = () => {
           {/* 지도 */}
           <section className="w-2/3 flex-grow">
             <div className="w-full h-full bg-white border rounded-md shadow-md p-6">
-              <MapComponent dayLocations={dayLocations} onMarkerClick={handleLocationClick} />
+              <MapComponent dayLocations={dayLocations} onMarkerClick={handleMarkerClick} />
             </div>
           </section>
         </div>
