@@ -6,7 +6,7 @@ export interface TravelLocation {
     description: string;
     startTime: string;
     endTime: string;
-    budget: number;
+    // budget: number;
 }
 
 export interface Route {
@@ -20,7 +20,7 @@ export interface DayLocations {
     day: string;
     locations: TravelLocation[];
     routes: Route[];
-    daily_budget: number;
+    // daily_budget: number;
 }
 
 const dayLocations: DayLocations[] = [
@@ -28,302 +28,275 @@ const dayLocations: DayLocations[] = [
         "day": "20240615",
         "locations": [
             {
-                "lat": 34.693738,
-                "lng": 135.502165,
-                "name": "Osaka Castle",
-                "type": 1,
-                "description": "오사카 성 방문",
-                "startTime": "10:00",
-                "endTime": "11:30",
-                "budget": 600
-            },
-            {
-                "lat": 34.705338,
-                "lng": 135.490059,
-                "name": "Umeda Sky Building",
-                "type": 1,
-                "description": "우메다 스카이 빌딩",
-                "startTime": "12:00",
-                "endTime": "13:30",
-                "budget": 1500
-            },
-            {
-                "lat": 34.668859,
-                "lng": 135.501452,
-                "name": "Dotonbori",
-                "type": 2,
-                "description": "도톤보리에서 점심 식사",
-                "startTime": "14:00",
-                "endTime": "15:30",
-                "budget": 2000
-            },
-            {
-                "lat": 34.667488,
-                "lng": 135.430238,
-                "name": "Universal Studios Japan",
-                "type": 1,
-                "description": "유니버설 스튜디오 재팬",
-                "startTime": "16:00",
-                "endTime": "20:00",
-                "budget": 8000
-            },
-            {
-                "lat": 34.652497,
-                "lng": 135.510400,
-                "name": "Shinsekai",
-                "type": 2,
-                "description": "신세카이에서 저녁 식사",
-                "startTime": "20:30",
-                "endTime": "22:00",
-                "budget": 3000
-            },
-            {
-                "lat": 34.693738,
-                "lng": 135.502165,
-                "name": "Hotel",
+                "lat": 35.116984,
+                "lng": 129.042415,
+                "name": "김해국제공항",
                 "type": 3,
-                "description": "호텔 체크인",
-                "startTime": "22:30",
-                "endTime": "23:00",
-                "budget": 10000
+                "description": "부산 여행의 시작점",
+                "startTime": "09:00",
+                "endTime": "09:30"
+            },
+            {
+                "lat": 35.156461,
+                "lng": 129.059691,
+                "name": "해운대 해수욕장",
+                "type": 1,
+                "description": "부산의 대표 해수욕장",
+                "startTime": "10:00",
+                "endTime": "12:00"
+            },
+            {
+                "lat": 35.163133,
+                "lng": 129.163558,
+                "name": "동백섬",
+                "type": 1,
+                "description": "아름다운 경치를 자랑하는 섬",
+                "startTime": "12:30",
+                "endTime": "14:00"
+            },
+            {
+                "lat": 35.156812,
+                "lng": 129.144132,
+                "name": "센텀시티",
+                "type": 4,
+                "description": "쇼핑과 식사를 즐길 수 있는 곳",
+                "startTime": "14:30",
+                "endTime": "16:00"
+            },
+            {
+                "lat": 35.137922,
+                "lng": 129.100597,
+                "name": "광안리 해수욕장",
+                "type": 1,
+                "description": "야경이 아름다운 해수욕장",
+                "startTime": "16:30",
+                "endTime": "18:00"
+            },
+            {
+                "lat": 35.155018,
+                "lng": 129.059473,
+                "name": "파크 하얏트 부산",
+                "type": 3,
+                "description": "럭셔리 호텔",
+                "startTime": "18:30",
+                "endTime": "21:00"
             }
         ],
         "routes": [
             {
-                "from": "Osaka Castle",
-                "to": "Umeda Sky Building",
-                "method": 2,
-                "time": "15분"
-            },
-            {
-                "from": "Umeda Sky Building",
-                "to": "Dotonbori",
-                "method": 2,
-                "time": "20분"
-            },
-            {
-                "from": "Dotonbori",
-                "to": "Universal Studios Japan",
+                "from": "김해국제공항",
+                "to": "해운대 해수욕장",
                 "method": 2,
                 "time": "30분"
             },
             {
-                "from": "Universal Studios Japan",
-                "to": "Shinsekai",
+                "from": "해운대 해수욕장",
+                "to": "동백섬",
+                "method": 3,
+                "time": "15분"
+            },
+            {
+                "from": "동백섬",
+                "to": "센텀시티",
+                "method": 2,
+                "time": "15분"
+            },
+            {
+                "from": "센텀시티",
+                "to": "광안리 해수욕장",
                 "method": 2,
                 "time": "20분"
             },
             {
-                "from": "Shinsekai",
-                "to": "Hotel",
+                "from": "광안리 해수욕장",
+                "to": "파크 하얏트 부산",
                 "method": 2,
-                "time": "15분"
+                "time": "20분"
             }
-        ],
-        "daily_budget": 27400
+        ]
     },
     {
         "day": "20240616",
         "locations": [
             {
-                "lat": 34.654518,
-                "lng": 135.506225,
-                "name": "Tennoji Zoo",
-                "type": 1,
-                "description": "덴노지 동물원",
-                "startTime": "09:00",
-                "endTime": "11:00",
-                "budget": 500
-            },
-            {
-                "lat": 34.661346,
-                "lng": 135.520005,
-                "name": "Shitennoji",
-                "type": 1,
-                "description": "시텐노지",
-                "startTime": "11:30",
-                "endTime": "12:30",
-                "budget": 300
-            },
-            {
-                "lat": 34.664914,
-                "lng": 135.506899,
-                "name": "Kuromon Ichiba Market",
-                "type": 2,
-                "description": "구로몬 시장에서 점심 식사",
-                "startTime": "13:00",
-                "endTime": "14:30",
-                "budget": 2500
-            },
-            {
-                "lat": 34.699881,
-                "lng": 135.493063,
-                "name": "Osaka Museum of Housing and Living",
-                "type": 1,
-                "description": "오사카 주택 및 생활 박물관",
-                "startTime": "15:00",
-                "endTime": "17:00",
-                "budget": 600
-            },
-            {
-                "lat": 34.702485,
-                "lng": 135.495951,
-                "name": "Hep Five",
-                "type": 2,
-                "description": "Hep Five에서 저녁 식사",
-                "startTime": "17:30",
-                "endTime": "19:00",
-                "budget": 3500
-            },
-            {
-                "lat": 34.693738,
-                "lng": 135.502165,
-                "name": "Hotel",
+                "lat": 35.155018,
+                "lng": 129.059473,
+                "name": "파크 하얏트 부산",
                 "type": 3,
-                "description": "호텔로 복귀",
-                "startTime": "19:30",
-                "endTime": "20:00",
-                "budget": 10000
+                "description": "럭셔리 호텔",
+                "startTime": "09:00",
+                "endTime": "09:30"
+            },
+            {
+                "lat": 35.180168,
+                "lng": 129.074534,
+                "name": "태종대",
+                "type": 1,
+                "description": "부산의 대표 관광지",
+                "startTime": "10:00",
+                "endTime": "12:00"
+            },
+            {
+                "lat": 35.097562,
+                "lng": 129.033761,
+                "name": "자갈치 시장",
+                "type": 2,
+                "description": "신선한 해산물을 즐길 수 있는 시장",
+                "startTime": "12:30",
+                "endTime": "14:00"
+            },
+            {
+                "lat": 35.096471,
+                "lng": 129.036232,
+                "name": "BIFF 광장",
+                "type": 1,
+                "description": "부산 국제 영화제가 열리는 광장",
+                "startTime": "14:30",
+                "endTime": "15:30"
+            },
+            {
+                "lat": 35.104593,
+                "lng": 129.032801,
+                "name": "부산 타워",
+                "type": 1,
+                "description": "부산 시내를 한눈에 볼 수 있는 타워",
+                "startTime": "16:00",
+                "endTime": "17:00"
+            },
+            {
+                "lat": 35.155018,
+                "lng": 129.059473,
+                "name": "파크 하얏트 부산",
+                "type": 3,
+                "description": "럭셔리 호텔",
+                "startTime": "17:30",
+                "endTime": "21:00"
             }
         ],
         "routes": [
             {
-                "from": "Hotel",
-                "to": "Tennoji Zoo",
+                "from": "파크 하얏트 부산",
+                "to": "태종대",
                 "method": 2,
-                "time": "20분"
+                "time": "30분"
             },
             {
-                "from": "Tennoji Zoo",
-                "to": "Shitennoji",
+                "from": "태종대",
+                "to": "자갈치 시장",
+                "method": 2,
+                "time": "30분"
+            },
+            {
+                "from": "자갈치 시장",
+                "to": "BIFF 광장",
                 "method": 3,
                 "time": "10분"
             },
             {
-                "from": "Shitennoji",
-                "to": "Kuromon Ichiba Market",
-                "method": 2,
-                "time": "15분"
-            },
-            {
-                "from": "Kuromon Ichiba Market",
-                "to": "Osaka Museum of Housing and Living",
-                "method": 2,
-                "time": "20분"
-            },
-            {
-                "from": "Osaka Museum of Housing and Living",
-                "to": "Hep Five",
+                "from": "BIFF 광장",
+                "to": "부산 타워",
                 "method": 3,
-                "time": "5분"
+                "time": "10분"
             },
             {
-                "from": "Hep Five",
-                "to": "Hotel",
+                "from": "부산 타워",
+                "to": "파크 하얏트 부산",
                 "method": 2,
-                "time": "10분"
+                "time": "30분"
             }
-        ],
-        "daily_budget": 17400
+        ]
     },
     {
         "day": "20240617",
         "locations": [
             {
-                "lat": 34.693738,
-                "lng": 135.502165,
-                "name": "Hotel",
+                "lat": 35.155018,
+                "lng": 129.059473,
+                "name": "파크 하얏트 부산",
                 "type": 3,
-                "description": "호텔 체크아웃",
+                "description": "럭셔리 호텔",
                 "startTime": "09:00",
-                "endTime": "09:30",
-                "budget": 10000
+                "endTime": "09:30"
             },
             {
-                "lat": 34.707152,
-                "lng": 135.497315,
-                "name": "Osaka Aquarium Kaiyukan",
+                "lat": 35.117212,
+                "lng": 129.033705,
+                "name": "용두산 공원",
                 "type": 1,
-                "description": "오사카 아쿠아리움",
+                "description": "부산 시내를 한눈에 볼 수 있는 공원",
                 "startTime": "10:00",
-                "endTime": "12:00",
-                "budget": 2300
+                "endTime": "11:00"
             },
             {
-                "lat": 34.669271,
-                "lng": 135.500290,
-                "name": "Shinsaibashi",
-                "type": 4,
-                "description": "신사이바시 쇼핑",
+                "lat": 35.179981,
+                "lng": 129.075103,
+                "name": "태종대 전망대",
+                "type": 1,
+                "description": "아름다운 해안 절경을 감상할 수 있는 곳",
+                "startTime": "11:30",
+                "endTime": "12:30"
+            },
+            {
+                "lat": 35.155978,
+                "lng": 129.129682,
+                "name": "해운대 달맞이길",
+                "type": 1,
+                "description": "경치가 아름다운 드라이브 코스",
                 "startTime": "13:00",
-                "endTime": "15:00",
-                "budget": 5000
+                "endTime": "14:00"
             },
             {
-                "lat": 34.694349,
-                "lng": 135.502835,
-                "name": "Tsutenkaku",
-                "type": 1,
-                "description": "쓰텐카쿠 타워",
-                "startTime": "15:30",
-                "endTime": "17:00",
-                "budget": 800
+                "lat": 35.155018,
+                "lng": 129.059473,
+                "name": "파크 하얏트 부산",
+                "type": 3,
+                "description": "호텔로 돌아가 휴식",
+                "startTime": "14:30",
+                "endTime": "15:30"
             },
             {
-                "lat": 34.703206,
-                "lng": 135.495911,
-                "name": "Hankyu Umeda Main Store",
-                "type": 2,
-                "description": "한큐 우메다에서 마지막 식사",
-                "startTime": "17:30",
-                "endTime": "19:00",
-                "budget": 4000
-            },
-            {
-                "lat": 34.691290,
-                "lng": 135.492053,
-                "name": "Osaka Station",
-                "type": 1,
-                "description": "오사카 역에서 출발",
-                "startTime": "19:30",
-                "endTime": "20:00",
-                "budget": 0
+                "lat": 35.116984,
+                "lng": 129.042415,
+                "name": "김해국제공항",
+                "type": 3,
+                "description": "부산 여행의 마무리",
+                "startTime": "16:00",
+                "endTime": "17:00"
             }
         ],
         "routes": [
             {
-                "from": "Hotel",
-                "to": "Osaka Aquarium Kaiyukan",
+                "from": "파크 하얏트 부산",
+                "to": "용두산 공원",
                 "method": 2,
                 "time": "20분"
             },
             {
-                "from": "Osaka Aquarium Kaiyukan",
-                "to": "Shinsaibashi",
+                "from": "용두산 공원",
+                "to": "태종대 전망대",
                 "method": 2,
-                "time": "20분"
+                "time": "30분"
             },
             {
-                "from": "Shinsaibashi",
-                "to": "Tsutenkaku",
+                "from": "태종대 전망대",
+                "to": "해운대 달맞이길",
+                "method": 2,
+                "time": "30분"
+            },
+            {
+                "from": "해운대 달맞이길",
+                "to": "파크 하얏트 부산",
                 "method": 2,
                 "time": "15분"
             },
             {
-                "from": "Tsutenkaku",
-                "to": "Hankyu Umeda Main Store",
+                "from": "파크 하얏트 부산",
+                "to": "김해국제공항",
                 "method": 2,
-                "time": "20분"
-            },
-            {
-                "from": "Hankyu Umeda Main Store",
-                "to": "Osaka Station",
-                "method": 3,
-                "time": "5분"
+                "time": "30분"
             }
-        ],
-        "daily_budget": 22100
-    },
+        ]
+    }
 ];
 
 export default dayLocations;

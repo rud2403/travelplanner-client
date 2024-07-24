@@ -19,8 +19,8 @@ export default function Home() {
     setDestination,
     setStartDate,
     setEndDate,
-    setNumberOfPeople,
-    setBudget,
+    // setNumberOfPeople,
+    // setBudget,
   } = useTravelStore();
 
   const [destination, setLocalDestination] = useState('');
@@ -56,8 +56,8 @@ export default function Home() {
     setDestination(destination);
     setStartDate(dateRange ? dateRange[0] : '');
     setEndDate(dateRange ? dateRange[1] : '');
-    setNumberOfPeople(numberOfPeople);
-    setBudget(budget);
+    // setNumberOfPeople(numberOfPeople);
+    // setBudget(budget);
     resetLocalState(); // Reset local state
     router.push('/plan');
   };
@@ -100,13 +100,13 @@ export default function Home() {
           dateRange={dateRange}
           setDateRange={setLocalDateRange}
           onClose={toggleModal}
-          onNext={handleNextStep}
+          onNext={handleFinish}
           onPrevious={handlePreviousStep}
         />
       )}
 
-      {/* People and Budget Modal */}
-      {isModalOpen && step === 3 && (
+      {/* People and Budget Modal 인원 및 예산관련 모달 */}
+      {/* {isModalOpen && step === 3 && (
         <PeopleAndBudgetModal
           numberOfPeople={numberOfPeople}
           setNumberOfPeople={setLocalNumberOfPeople}
@@ -116,7 +116,7 @@ export default function Home() {
           onNext={handleFinish}
           onPrevious={handlePreviousStep}
         />
-      )}
+      )} */}
     </div>
   );
 }
