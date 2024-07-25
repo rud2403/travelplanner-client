@@ -71,9 +71,9 @@ const Planning = () => {
       {/* 사이드 */}
       <aside className="w-64 bg-gradient-to-b from-blue-500 to-indigo-500 text-white flex flex-col p-4 shadow-lg">
         <nav className="flex flex-col space-y-4">
-          <button className="bg-white text-blue-500 hover:bg-gray-100 hover:text-blue-600 font-bold py-2 px-4 rounded-md transition duration-300">
+          {/* <button className="bg-white text-blue-500 hover:bg-gray-100 hover:text-blue-600 font-bold py-2 px-4 rounded-md transition duration-300">
             백단 통신체크
-          </button>
+          </button> */}
           <button onClick={() => router.push('/page2')} className="flex items-center p-2 hover:bg-blue-600 rounded-md transition duration-300">
             Page 2
           </button>

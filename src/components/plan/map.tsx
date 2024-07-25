@@ -41,7 +41,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick
     fillOpacity: 1,
     strokeColor: '#000',
     strokeWeight: isFocused ? 2 : 1,
-    scale: isFocused ? 10 : 8,
+    scale: isFocused ? 16 : 8,
     labelOrigin: new google.maps.Point(0, 0),
   });
 
