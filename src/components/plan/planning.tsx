@@ -4,15 +4,17 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTravelStore } from '@/store/useTravelStore';
 import MapComponent from '@/components/plan/map';
-import Timeline from '@/components/plan/timeLine'; // 새로운 타임라인 컴포넌트
-import TravelModal from '@/components/modal/travelModal'; // 새로운 모달 컴포넌트
-import dayLocationsData from '@/services/dayLocations'; // 데이터 임포트
-import { TravelLocation } from '@/services/dayLocations'; // 추가된 부분
+import Timeline from '@/components/plan/timeLine';
+import TravelModal from '@/components/modal/travelModal';
+import dayLocationsData from '@/services/dayLocations';
+import { TravelLocation } from '@/services/dayLocations';
+import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 
 const Planning = () => {
   const [response, setResponse] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<TravelLocation | null>(null); // 수정된 부분
+  const [selectedLocation, setSelectedLocation] = useState<TravelLocation | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const router = useRouter();
 
   const {
@@ -66,18 +68,40 @@ const Planning = () => {
 
   const handleDayClick = (day: number | null) => {
     setSelectedDay(day);
+    setIsSidebarOpen(false); // 사이드바를 닫음
   };
 
   return (
-    <main className="flex min-h-screen bg-gray-100">
+    <main className="flex min-h-screen bg-gray-50">
+      {/* 햄버거 메뉴 아이콘 */}
+      <div className="fixed top-1/2 left-0 transform -translate-y-1/2 z-50">
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="text-white bg-blue-600 p-3 rounded-full shadow-lg focus:outline-none"
+        >
+          {isSidebarOpen ? <FaArrowLeft size={24} /> : <FaArrowRight size={24} />}
+        </button>
+      </div>
+
       {/* 사이드 */}
-      <aside className="w-64 bg-gradient-to-b from-blue-500 to-indigo-500 text-white flex flex-col p-4 shadow-lg">
+      <aside
+        className={`fixed top-16 bottom-16 left-0 z-40 w-64 p-6 shadow-lg transform transition-transform duration-300 ease-in-out ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } bg-transparent`}
+      >
         <nav className="flex flex-col space-y-4">
-          <button onClick={() => handleDayClick(null)} className="flex items-center p-2 hover:bg-blue-600 rounded-md transition duration-300">
+          <button
+            onClick={() => handleDayClick(null)}
+            className="flex items-center p-3 bg-blue-600 bg-opacity-80 hover:bg-opacity-100 text-white rounded-md shadow-md transition duration-300"
+          >
             전체 일정
           </button>
           {dayLocations.map((dayLocation, index) => (
-            <button key={index} onClick={() => handleDayClick(index)} className="flex items-center p-2 hover:bg-blue-600 rounded-md transition duration-300">
+            <button
+              key={index}
+              onClick={() => handleDayClick(index)}
+              className="flex items-center p-3 bg-blue-600 bg-opacity-80 hover:bg-opacity-100 text-white rounded-md shadow-md transition duration-300"
+            >
               {dayLocation.day.slice(0, 4)}-{dayLocation.day.slice(4, 6)}-{dayLocation.day.slice(6)}
             </button>
           ))}
@@ -85,23 +109,23 @@ const Planning = () => {
       </aside>
 
       {/* 메인 */}
-      <section className="w-full bg-gray-50 p-6 flex flex-col text-gray-800">
-        <div className="w-full max-w-6xl mb-4 p-6 text-center">
-          <div className="mb-2">
-            <h2 className="text-4xl font-bold text-blue-600">{destination}</h2>
+      <section className={`flex-grow bg-white p-8 flex flex-col text-gray-800 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        <div className="w-full max-w-6xl mx-auto mb-8 text-center">
+          <div className="mb-4">
+            <h2 className="text-5xl font-extrabold text-blue-600">{destination}</h2>
           </div>
-          <div className="mb-6">
-            <p className="text-sm text-gray-600">{startDate} ~ {endDate}</p>
+          <div className="mb-8">
+            <p className="text-lg text-gray-600">{startDate} ~ {endDate}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {response && (
-              <div className="mt-4 p-4 bg-green-100 text-green-800 rounded-md">
+              <div className="mt-4 p-6 bg-green-100 text-green-800 rounded-lg">
                 <p className="font-bold">Response:</p>
                 <pre>{JSON.stringify(response, null, 2)}</pre>
               </div>
             )}
             {error && (
-              <div className="mt-4 p-4 bg-red-100 text-red-800 rounded-md">
+              <div className="mt-4 p-6 bg-red-100 text-red-800 rounded-lg">
                 <p className="font-bold">Error:</p>
                 <pre>{error}</pre>
               </div>
@@ -111,18 +135,18 @@ const Planning = () => {
 
         <div className="flex-grow flex">
           {/* 타임라인 */}
-          <section className="w-1/3 pr-6 text-gray-800">
+          <section className="w-1/3 pr-6">
             <Timeline
               onRouteClick={handleRouteClick}
               onRouteMouseEnter={handleRouteMouseEnter}
               onRouteMouseLeave={handleRouteMouseLeave}
               onLocationMouseLeave={handleLocationMouseLeave}
-              onLocationClick={handleLocationClick} // 추가된 부분
+              onLocationClick={handleLocationClick}
             />
           </section>
           {/* 지도 */}
           <section className="w-2/3 flex-grow">
-            <div className="w-full h-full bg-white border rounded-md shadow-md p-6">
+            <div className="w-full h-full bg-white border rounded-lg shadow-lg p-6">
               <MapComponent dayLocations={selectedDay !== null ? [dayLocations[selectedDay]] : dayLocations} onMarkerClick={handleMarkerClick} />
             </div>
           </section>
