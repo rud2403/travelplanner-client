@@ -19,6 +19,7 @@ const TimeLine: React.FC<TimelineProps> = ({
 }) => {
   const dayLocations = useTravelStore((state) => state.dayLocations);
   const selectedDay = useTravelStore((state) => state.selectedDay);
+  const colors = useTravelStore((state) => state.colors);
 
   const methodToText = (method: number) => {
     switch (method) {
@@ -38,8 +39,6 @@ const TimeLine: React.FC<TimelineProps> = ({
       default: return '';
     }
   };
-
-  const colors = ['#FF5733', '#33C1FF', '#33FF57', '#FFC133', '#C133FF', '#FF33A6', '#33FFD1', '#FF8F33', '#33FF8F', '#8F33FF'];
 
   const displayLocations = selectedDay !== null ? [dayLocations[selectedDay]] : dayLocations;
 

@@ -8,7 +8,7 @@ const containerStyle = {
   height: '100%',
 };
 
-const colors = ['#FF5733', '#33C1FF', '#33FF57', '#FFC133', '#C133FF', '#FF33A6', '#33FFD1', '#FF8F33', '#33FF8F', '#8F33FF'];
+const libraries = ['places'];
 
 interface MapComponentProps {
   dayLocations: DayLocations[];
@@ -20,6 +20,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick
   const focusedLocation = useTravelStore((state) => state.focusedLocation);
   const focusedRoute = useTravelStore((state) => state.focusedRoute);
   const selectedDay = useTravelStore((state) => state.selectedDay);
+  const colors = useTravelStore((state) => state.colors);
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
   });
@@ -67,11 +68,11 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick
 
   const displayLocations = selectedDay !== null ? [dayLocations[selectedDay]] : dayLocations;
 
-  // console.log('dayLocations:', dayLocations);
+  console.log('displayLocations:', displayLocations);
 
   return (
     <GoogleMap
-      key={selectedDay} // Ensure re-render on selectedDay change
+      key={selectedDay}
       mapContainerStyle={containerStyle}
       center={dayLocations[0]?.locations[0] || { lat: 0, lng: 0 }}
       zoom={14}
@@ -85,7 +86,8 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick
           return null;
         }
 
-        const color = colors[dayIndex % colors.length];
+        const color = colors[dayLocation.index];
+        console.log('dayLocation.index : ', dayLocation.index);
         return (
           <React.Fragment key={dayLocation.day}>
             {dayLocation.locations.map((location, index) => (
@@ -104,12 +106,12 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick
               if (fromLocation && toLocation) {
                 const pathArray = [fromLocation, toLocation];
 
-                console.log('route.from:', route.from);
-                console.log('route.to:', route.to);
-                console.log('selectedDay:', selectedDay);
+                // console.log('route.from:', route.from);
+                // console.log('route.to:', route.to);
+                // console.log('selectedDay:', selectedDay);
                 return (
                   <Polyline
-                    key={`${route.from}-${route.to}-${selectedDay}`} // Ensure re-render on selectedDay change
+                    key={`${route.from}-${route.to}-${selectedDay}`}
                     path={pathArray}
                     options={{
                       strokeColor: focusedRoute === route ? '#FFFF00' : color,
