@@ -1,4 +1,3 @@
-// useTravelStore.ts
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { DayLocations, Route, TravelLocation } from '@/services/dayLocations';
@@ -7,17 +6,15 @@ interface TravelState {
   destination: string;
   startDate: string;
   endDate: string;
-  // numberOfPeople: number;
-  // budget: number;
   dayLocations: DayLocations[];
+  selectedDay: number | null;
   focusedLocation: TravelLocation | null;
   focusedRoute: Route | null;
-  setDestination: (destination: string) => void; // 여행지 설정 함수
+  setDestination: (destination: string) => void;
   setStartDate: (startDate: string) => void;
   setEndDate: (endDate: string) => void;
-  // setNumberOfPeople: (numberOfPeople: number) => void;
-  // setBudget: (budget: number) => void;
   setDayLocations: (dayLocations: DayLocations[]) => void;
+  setSelectedDay: (day: number | null) => void;
   setFocusedLocation: (location: TravelLocation | null) => void;
   setFocusedRoute: (route: Route | null) => void;
   resetState: () => void;
@@ -28,17 +25,15 @@ export const useTravelStore = create<TravelState>()(
     destination: '',
     startDate: '',
     endDate: '',
-    numberOfPeople: 1,
-    budget: 0,
     dayLocations: [],
+    selectedDay: null,
     focusedLocation: null,
     focusedRoute: null,
-    setDestination: (destination) => set({ destination }), // 여행지 설정
+    setDestination: (destination) => set({ destination }),
     setStartDate: (startDate) => set({ startDate }),
     setEndDate: (endDate) => set({ endDate }),
-    // setNumberOfPeople: (numberOfPeople) => set({ numberOfPeople }),
-    // setBudget: (budget) => set({ budget }),
     setDayLocations: (dayLocations) => set({ dayLocations }),
+    setSelectedDay: (day) => set({ selectedDay: day }),
     setFocusedLocation: (location) => set({ focusedLocation: location }),
     setFocusedRoute: (route) => set({ focusedRoute: route }),
     resetState: () =>
@@ -46,9 +41,8 @@ export const useTravelStore = create<TravelState>()(
         destination: '',
         startDate: '',
         endDate: '',
-        // numberOfPeople: 1,
-        // budget: 0,
         dayLocations: [],
+        selectedDay: null,
         focusedLocation: null,
         focusedRoute: null,
       }),

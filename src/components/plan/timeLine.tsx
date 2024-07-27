@@ -6,7 +6,6 @@ interface TimelineProps {
   onRouteClick: (from: string, to: string) => void;
   onRouteMouseEnter: (from: string, to: string) => void;
   onRouteMouseLeave: () => void;
-  // onLocationMouseEnter: (location: TravelLocation) => void;
   onLocationMouseLeave: () => void;
   onLocationClick: (location: TravelLocation) => void;
 }
@@ -15,11 +14,11 @@ const TimeLine: React.FC<TimelineProps> = ({
   onRouteClick,
   onRouteMouseEnter,
   onRouteMouseLeave,
-  // onLocationMouseEnter,
   onLocationMouseLeave,
   onLocationClick,
 }) => {
   const dayLocations = useTravelStore((state) => state.dayLocations);
+  const selectedDay = useTravelStore((state) => state.selectedDay);
 
   const methodToText = (method: number) => {
     switch (method) {
@@ -42,24 +41,25 @@ const TimeLine: React.FC<TimelineProps> = ({
 
   const colors = ['#FF5733', '#33C1FF', '#33FF57', '#FFC133', '#C133FF', '#FF33A6', '#33FFD1', '#FF8F33', '#33FF8F', '#8F33FF'];
 
+  const displayLocations = selectedDay !== null ? [dayLocations[selectedDay]] : dayLocations;
+
   return (
     <div className="flex flex-col p-4">
       <div className="flex space-x-4 overflow-x-auto">
-        {dayLocations.map((dayLocation, dayIndex) => (
+        {displayLocations.map((dayLocation, dayIndex) => (
           <div key={dayLocation.day} className="flex-1 bg-white p-6 rounded-lg shadow-lg min-w-[300px] flex flex-col justify-between">
             <div>
-              <h3 className="text-2xl font-bold mb-1 text-center" style={{ color: colors[dayIndex] }}>Day {dayIndex + 1}</h3>
+              <h3 className="text-2xl font-bold mb-1 text-center" style={{ color: colors[selectedDay ?? dayIndex] }}>Day {selectedDay !== null ? selectedDay + 1 : dayIndex + 1}</h3>
               <p className="text-sm text-center text-gray-500 mb-6">{dayLocation.day.slice(0, 4)}-{dayLocation.day.slice(4, 6)}-{dayLocation.day.slice(6)}</p>
               <ul className="space-y-6">
                 {dayLocation.locations.map((location, locIndex) => (
                   <React.Fragment key={locIndex}>
                     <li
                       className="flex items-center space-x-4 cursor-pointer hover:bg-gray-100 p-3 rounded-md transition duration-300"
-                      // onMouseEnter={() => onLocationMouseEnter(location)}
                       onMouseLeave={onLocationMouseLeave}
                       onClick={() => onLocationClick(location)}
                     >
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full text-white font-bold" style={{ backgroundColor: colors[dayIndex] }}>
+                      <div className="flex items-center justify-center w-10 h-10 rounded-full text-white font-bold" style={{ backgroundColor: colors[selectedDay ?? dayIndex] }}>
                         {locIndex + 1}
                       </div>
                       <div>

@@ -21,6 +21,8 @@ const Planning = () => {
     endDate,
     setDayLocations,
     dayLocations,
+    setSelectedDay,
+    selectedDay,
     setFocusedLocation,
     setFocusedRoute,
   } = useTravelStore();
@@ -50,10 +52,6 @@ const Planning = () => {
     setFocusedRoute(null);
   };
 
-  // const handleLocationMouseEnter = (location: TravelLocation) => {
-  //   setFocusedLocation(location);
-  // };
-
   const handleLocationMouseLeave = () => {
     setFocusedLocation(null);
   };
@@ -66,20 +64,23 @@ const Planning = () => {
     setSelectedLocation(location); // 마커 클릭 시 모달 열기
   };
 
+  const handleDayClick = (day: number | null) => {
+    setSelectedDay(day);
+  };
+
   return (
     <main className="flex min-h-screen bg-gray-100">
       {/* 사이드 */}
       <aside className="w-64 bg-gradient-to-b from-blue-500 to-indigo-500 text-white flex flex-col p-4 shadow-lg">
         <nav className="flex flex-col space-y-4">
-          {/* <button className="bg-white text-blue-500 hover:bg-gray-100 hover:text-blue-600 font-bold py-2 px-4 rounded-md transition duration-300">
-            백단 통신체크
-          </button> */}
-          <button onClick={() => router.push('/page2')} className="flex items-center p-2 hover:bg-blue-600 rounded-md transition duration-300">
-            Page 2
+          <button onClick={() => handleDayClick(null)} className="flex items-center p-2 hover:bg-blue-600 rounded-md transition duration-300">
+            전체 일정
           </button>
-          <button onClick={() => router.push('/page3')} className="flex items-center p-2 hover:bg-blue-600 rounded-md transition duration-300">
-            Page 3
-          </button>
+          {dayLocations.map((dayLocation, index) => (
+            <button key={index} onClick={() => handleDayClick(index)} className="flex items-center p-2 hover:bg-blue-600 rounded-md transition duration-300">
+              {dayLocation.day.slice(0, 4)}-{dayLocation.day.slice(4, 6)}-{dayLocation.day.slice(6)}
+            </button>
+          ))}
         </nav>
       </aside>
 
@@ -111,11 +112,10 @@ const Planning = () => {
         <div className="flex-grow flex">
           {/* 타임라인 */}
           <section className="w-1/3 pr-6 text-gray-800">
-            <Timeline 
+            <Timeline
               onRouteClick={handleRouteClick}
               onRouteMouseEnter={handleRouteMouseEnter}
               onRouteMouseLeave={handleRouteMouseLeave}
-              // onLocationMouseEnter={handleLocationMouseEnter}
               onLocationMouseLeave={handleLocationMouseLeave}
               onLocationClick={handleLocationClick} // 추가된 부분
             />
@@ -123,7 +123,7 @@ const Planning = () => {
           {/* 지도 */}
           <section className="w-2/3 flex-grow">
             <div className="w-full h-full bg-white border rounded-md shadow-md p-6">
-              <MapComponent dayLocations={dayLocations} onMarkerClick={handleMarkerClick} />
+              <MapComponent dayLocations={selectedDay !== null ? [dayLocations[selectedDay]] : dayLocations} onMarkerClick={handleMarkerClick} />
             </div>
           </section>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { GoogleMap, Marker, Polyline, useLoadScript } from '@react-google-maps/api';
 import { useTravelStore } from '@/store/useTravelStore';
 import { TravelLocation, DayLocations } from '@/services/dayLocations';
@@ -19,9 +19,9 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick
   const mapRef = useRef<google.maps.Map | null>(null);
   const focusedLocation = useTravelStore((state) => state.focusedLocation);
   const focusedRoute = useTravelStore((state) => state.focusedRoute);
+  const selectedDay = useTravelStore((state) => state.selectedDay);
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-    libraries: ['places'],
   });
 
   useEffect(() => {
@@ -30,6 +30,13 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick
       mapRef.current.setZoom(15);
     }
   }, [focusedLocation]);
+
+  useEffect(() => {
+    if (selectedDay !== null && mapRef.current && dayLocations[selectedDay]?.locations[0]) {
+      mapRef.current.panTo({ lat: dayLocations[selectedDay].locations[0].lat, lng: dayLocations[selectedDay].locations[0].lng });
+      mapRef.current.setZoom(14);
+    }
+  }, [selectedDay, dayLocations]);
 
   if (!isLoaded) {
     return <div>Loading...</div>;
@@ -56,10 +63,17 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick
     mapRef.current = mapInstance;
   };
 
+  console.log('selectedDay:', selectedDay);
+
+  const displayLocations = selectedDay !== null ? [dayLocations[selectedDay]] : dayLocations;
+
+  // console.log('dayLocations:', dayLocations);
+
   return (
     <GoogleMap
+      key={selectedDay} // Ensure re-render on selectedDay change
       mapContainerStyle={containerStyle}
-      center={dayLocations[0].locations[0]}
+      center={dayLocations[0]?.locations[0] || { lat: 0, lng: 0 }}
       zoom={14}
       onLoad={handleLoad}
       options={{
@@ -67,9 +81,13 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick
       }}
     >
       {dayLocations.map((dayLocation, dayIndex) => {
+        if (!dayLocation || !dayLocation.locations) {
+          return null;
+        }
+
         const color = colors[dayIndex % colors.length];
         return (
-          <React.Fragment key={dayIndex}>
+          <React.Fragment key={dayLocation.day}>
             {dayLocation.locations.map((location, index) => (
               <Marker
                 key={index}
@@ -84,25 +102,19 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick
               const toLocation = dayLocation.locations.find(loc => loc.name === route.to);
 
               if (fromLocation && toLocation) {
+                const pathArray = [fromLocation, toLocation];
+
+                console.log('route.from:', route.from);
+                console.log('route.to:', route.to);
+                console.log('selectedDay:', selectedDay);
                 return (
                   <Polyline
-                    key={index}
-                    path={[fromLocation, toLocation]}
+                    key={`${route.from}-${route.to}-${selectedDay}`} // Ensure re-render on selectedDay change
+                    path={pathArray}
                     options={{
                       strokeColor: focusedRoute === route ? '#FFFF00' : color,
                       strokeOpacity: 1,
                       strokeWeight: focusedRoute === route ? 4 : 2,
-                      icons: [
-                        {
-                          icon: {
-                            path: 'M 0,-1 0,1',
-                            strokeOpacity: 1,
-                            scale: 4,
-                          },
-                          offset: '0',
-                          repeat: '10px',
-                        },
-                      ],
                     }}
                   />
                 );
