@@ -8,8 +8,6 @@ const containerStyle = {
   height: '100%',
 };
 
-const libraries = ['places'];
-
 interface MapComponentProps {
   dayLocations: DayLocations[];
   onMarkerClick: (location: TravelLocation) => void;
@@ -27,17 +25,12 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick
 
   useEffect(() => {
     if (focusedLocation && mapRef.current) {
+      console.log('focusedLocation.lat : ', focusedLocation.lat)
+      console.log('focusedLocation.lng : ', focusedLocation.lng)
       mapRef.current.panTo({ lat: focusedLocation.lat, lng: focusedLocation.lng });
       mapRef.current.setZoom(15);
     }
   }, [focusedLocation]);
-
-  useEffect(() => {
-    if (selectedDay !== null && mapRef.current && dayLocations[selectedDay]?.locations[0]) {
-      mapRef.current.panTo({ lat: dayLocations[selectedDay].locations[0].lat, lng: dayLocations[selectedDay].locations[0].lng });
-      mapRef.current.setZoom(14);
-    }
-  }, [selectedDay, dayLocations]);
 
   if (!isLoaded) {
     return <div>Loading...</div>;
@@ -66,10 +59,6 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick
 
   console.log('selectedDay:', selectedDay);
 
-  const displayLocations = selectedDay !== null ? [dayLocations[selectedDay]] : dayLocations;
-
-  console.log('displayLocations:', displayLocations);
-
   return (
     <GoogleMap
       key={selectedDay}
@@ -87,7 +76,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick
         }
 
         const color = colors[dayLocation.index];
-        console.log('dayLocation.index : ', dayLocation.index);
+        // console.log('dayLocation.index : ', dayLocation.index);
         return (
           <React.Fragment key={dayLocation.day}>
             {dayLocation.locations.map((location, index) => (
