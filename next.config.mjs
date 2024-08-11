@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    reactStrictMode: true,
+    reactStrictMode: false,
     async rewrites() {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
         return [
