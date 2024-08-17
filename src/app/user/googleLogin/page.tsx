@@ -90,7 +90,7 @@ const GoogleLogin = () => {
         );
     }
 
-    return null;
+    return <Suspense></Suspense>;
 };
 
 export default GoogleLogin;
