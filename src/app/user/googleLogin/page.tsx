@@ -89,8 +89,6 @@ const GoogleLogin = () => {
             </Suspense>
         );
     }
-
-    return <Suspense></Suspense>;
 };
 
 export default GoogleLogin;
