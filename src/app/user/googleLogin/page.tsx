@@ -76,7 +76,7 @@ const GoogleLogin = () => {
 
     if (loading) {
         return (
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense>
                 <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-purple-600">
                     <div className="flex flex-col items-center p-6 bg-white shadow-lg rounded-lg">
                         <div className="flex items-center justify-center mb-4">
