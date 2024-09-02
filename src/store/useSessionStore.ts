@@ -1,10 +1,11 @@
 import { create } from 'zustand';
 
 type UserInfo = {
-  sub: string;
-  name: string;
-  email: string;
-  picture: string;
+  name?: string;
+  sub?: string;
+  email?: string;
+  picture?: string;
+  nickname?: string;
 };
 
 type SessionState = {
