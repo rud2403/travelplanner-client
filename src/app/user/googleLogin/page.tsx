@@ -41,6 +41,7 @@ const GoogleLoginContent = () => { // Renamed for clarity
                         name: decodedToken.name,
                         email: decodedToken.email,
                         picture: decodedToken.picture,
+                        nickname: ""
                     });
                 }
 

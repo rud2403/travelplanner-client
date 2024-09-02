@@ -9,3 +9,16 @@ export const fetchData = async (googleCode: string | null) => {
         throw error;
     }
 };
+
+export const updateUserInfoAPI = async (nickname: string, email: string) => {
+    try {
+        const response = await axios.patch('/api/user/update', {
+            nickname,
+            email,
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating user information:', error);
+        throw error;
+    }
+};
