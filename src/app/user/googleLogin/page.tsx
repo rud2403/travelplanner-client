@@ -32,9 +32,9 @@ const GoogleLoginContent = () => { // Renamed for clarity
                 console.log("data : ", data);
 
                 if (data) {
-                    localStorage.setItem('jwtToken', data);
+                    localStorage.setItem('jwtToken', data.data);
 
-                    const decodedToken: DecodedToken = jwtDecode<DecodedToken>(data);
+                    const decodedToken: DecodedToken = jwtDecode<DecodedToken>(data.data);
                     console.log("Decoded Token: ", decodedToken);
 
                     updateUserInfo({
