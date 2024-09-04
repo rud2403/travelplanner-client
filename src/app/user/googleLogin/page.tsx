@@ -12,6 +12,7 @@ type DecodedToken = {
     name: string;
     email: string;
     picture: string;
+    nickname: string;
     iat?: number;
     exp?: number;
 };
@@ -41,7 +42,7 @@ const GoogleLoginContent = () => { // Renamed for clarity
                         name: decodedToken.name,
                         email: decodedToken.email,
                         picture: decodedToken.picture,
-                        nickname: ""
+                        nickname: decodedToken.nickname
                     });
                 }
 
