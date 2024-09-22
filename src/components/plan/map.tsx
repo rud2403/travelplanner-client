@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { GoogleMap, Marker, Polyline, useLoadScript } from '@react-google-maps/api';
 import { useTravelStore } from '@/store/useTravelStore';
-import { TravelLocation, DayLocations } from '@/services/dayLocations';
+import { TravelLocation, TravelPlan } from '@/data/travelPlanData';
 
 const containerStyle = {
   width: '100%',
@@ -9,11 +9,11 @@ const containerStyle = {
 };
 
 interface MapComponentProps {
-  dayLocations: DayLocations[];
+  travelPlanData: TravelPlan[];
   onMarkerClick: (location: TravelLocation) => void;
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerClick }) => {
   const mapRef = useRef<google.maps.Map | null>(null);
   const focusedLocation = useTravelStore((state) => state.focusedLocation);
   const focusedRoute = useTravelStore((state) => state.focusedRoute);
@@ -63,14 +63,14 @@ const MapComponent: React.FC<MapComponentProps> = ({ dayLocations, onMarkerClick
     <GoogleMap
       key={selectedDay}
       mapContainerStyle={containerStyle}
-      center={dayLocations[0]?.locations[0] || { lat: 0, lng: 0 }}
+      center={travelPlanData[0]?.locations[0] || { lat: 0, lng: 0 }}
       zoom={14}
       onLoad={handleLoad}
       options={{
         scrollwheel: true,
       }}
     >
-      {dayLocations.map((dayLocation, dayIndex) => {
+      {travelPlanData.map((dayLocation, dayIndex) => {
         if (!dayLocation || !dayLocation.locations) {
           return null;
         }

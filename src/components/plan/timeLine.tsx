@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTravelStore } from '@/store/useTravelStore';
-import { TravelLocation } from '@/services/dayLocations';
+import { TravelLocation } from '@/data/travelPlanData';
 
 interface TimelineProps {
   onRouteClick: (from: string, to: string) => void;
