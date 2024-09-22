@@ -5,9 +5,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DatePickerModal from '@/containers/picker/datePicker';
 import LocationPickerModal from '@/containers/picker/locationPicker';
-import PeopleAndBudgetModal from '@/containers/picker/peopleAndBudgetPicker';
+import { callTravelPlanAPI } from '@/services/travelPlan';
 import { useTravelStore } from '@/store/useTravelStore';
 import 'react-calendar/dist/Calendar.css';
+import { travelPlanData } from '@/data/travelPlanData';
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -52,13 +53,36 @@ export default function Home() {
     setStep(step - 1);
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     setDestination(destination);
     setStartDate(dateRange ? dateRange[0] : '');
     setEndDate(dateRange ? dateRange[1] : '');
     // setNumberOfPeople(numberOfPeople);
     // setBudget(budget);
     resetLocalState(); // Reset local state
+
+    // console.log('destination : ', destination); // ex) : 미국 - 뉴욕
+    // console.log('startDate : ', dateRange ? dateRange[0] : ''); // ex) 2024-10-01
+    // console.log('endDate : ', dateRange ? dateRange[1] : ''); // ex) 2024-10-10
+
+    // 여기서 destination, startDate, endDate 데이터를 기반으로 chatGpt assistant가 생성해준 데이터를 받아와야함
+    // 백엔드 chatGpt api 호출하기
+
+    const startDate = dateRange ? dateRange[0] : '';
+    const endDate = dateRange ? dateRange[1] : '';
+
+    const response = await callTravelPlanAPI(destination, startDate, endDate);
+
+    // if (Array.isArray(response)) {
+      // travelPlanData 배열을 비운 후 새 데이터를 추가
+      travelPlanData.length = 0; // 기존 배열 비우기
+      travelPlanData.push(...response); // 새 데이터를 배열에 추가
+    // } else {
+    //   console.error('잘못된 데이터 형식: 배열이 아닙니다.');
+    // }
+
+    console.log(' 데이터 입력 확인 : ', travelPlanData);
+
     router.push('/plan');
   };
 

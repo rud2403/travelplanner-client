@@ -6,8 +6,8 @@ import { useTravelStore } from '@/store/useTravelStore';
 import MapComponent from '@/components/plan/map';
 import Timeline from '@/components/plan/timeLine';
 import TravelModal from '@/components/modal/travelModal';
-import dayLocationsData from '@/services/dayLocations';
-import { TravelLocation } from '@/services/dayLocations';
+import travelPlan from '@/data/travelPlanData';
+import { TravelLocation } from '@/data/travelPlanData';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 
 const Planning = () => {
@@ -33,7 +33,7 @@ const Planning = () => {
     if (!destination || !startDate || !endDate) {
       router.push('/'); // 데이터가 없으면 홈으로 리다이렉트
     } else {
-      setDayLocations(dayLocationsData); // dayLocations 설정
+      setDayLocations(travelPlan); // dayLocations 설정
     }
   }, [destination, startDate, endDate, router, setDayLocations]);
 

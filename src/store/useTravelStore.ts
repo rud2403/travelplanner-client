@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { DayLocations, Route, TravelLocation } from '@/services/dayLocations';
+import { TravelPlan, Route, TravelLocation } from '@/data/travelPlanData';
 
 interface TravelState {
   destination: string;
   startDate: string;
   endDate: string;
-  dayLocations: DayLocations[];
+  dayLocations: TravelPlan[];
   selectedDay: number | null;
   focusedLocation: TravelLocation | null;
   focusedRoute: Route | null;
@@ -14,7 +14,7 @@ interface TravelState {
   setDestination: (destination: string) => void;
   setStartDate: (startDate: string) => void;
   setEndDate: (endDate: string) => void;
-  setDayLocations: (dayLocations: DayLocations[]) => void;
+  setDayLocations: (dayLocations: TravelPlan[]) => void;
   setSelectedDay: (day: number | null) => void;
   setFocusedLocation: (location: TravelLocation | null) => void;
   setFocusedRoute: (route: Route | null) => void;
