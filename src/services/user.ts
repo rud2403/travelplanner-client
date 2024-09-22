@@ -10,11 +10,11 @@ export const fetchData = async (googleCode: string | null) => {
     }
 };
 
-export const updateUserInfoAPI = async (nickname: string, email: string) => {
+export const updateUserInfoAPI = async (email: string, nickname: string) => {
     try {
         const response = await axios.patch('/api/user/update', {
-            nickname,
             email,
+            nickname
         });
         return response.data;
     } catch (error) {

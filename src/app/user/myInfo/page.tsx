@@ -29,7 +29,7 @@ export default function MyInfo() {
             }
 
             // 백엔드로 데이터 전송
-            const response = await updateUserInfoAPI(nickname, userInfo.email);
+            const response = await updateUserInfoAPI(userInfo.email, nickname);
 
             const updatedUserInfo = {
                 ...userInfo,
