@@ -50,7 +50,7 @@ const TimeLine: React.FC<TimelineProps> = ({
             <h3 className="text-3xl font-bold text-center" style={{ color: colors[selectedDay ?? dayIndex] }}>
               Day {selectedDay !== null ? selectedDay + 1 : dayIndex + 1}
             </h3>
-            <p className="text-center text-gray-500">{dayLocation.day.slice(0, 4)}-{dayLocation.day.slice(4, 6)}-{dayLocation.day.slice(6)}</p>
+            <p className="text-center text-gray-500">{dayLocation.day}</p>
           </div>
           <ul className="space-y-6">
             {dayLocation.locations.map((location, locIndex) => (

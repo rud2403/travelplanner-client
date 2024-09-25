@@ -8,9 +8,11 @@ export const callTravelPlanAPI = async (destination: string, startDate: string, 
                 destination,
                 startDate,
                 endDate
-            }
+            },
+            timeout: 999999 // ex) 최대 10초 동안 기다림 (10000ms)
         });
         console.log('response : ', response);
+
         return response.data.data;
     } catch (error) {
         console.error('chatGpt assistant 호출 실패 :', error);

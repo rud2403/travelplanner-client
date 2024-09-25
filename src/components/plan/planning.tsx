@@ -102,7 +102,7 @@ const Planning = () => {
               onClick={() => handleDayClick(index)}
               className="flex items-center p-3 bg-blue-600 bg-opacity-80 hover:bg-opacity-100 text-white rounded-md shadow-md transition duration-300"
             >
-              {dayLocation.day.slice(0, 4)}-{dayLocation.day.slice(4, 6)}-{dayLocation.day.slice(6)}
+              {dayLocation.day}
             </button>
           ))}
         </nav>

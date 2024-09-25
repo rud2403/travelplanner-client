@@ -57,8 +57,6 @@ const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerCli
     mapRef.current = mapInstance;
   };
 
-  console.log('selectedDay:', selectedDay);
-
   return (
     <GoogleMap
       key={selectedDay}
