@@ -10,9 +10,12 @@ import { useTravelStore } from '@/store/useTravelStore';
 import 'react-calendar/dist/Calendar.css';
 import { travelPlanData, TravelPlan } from '@/data/travelPlanData';
 
+import styles from './page.module.css'; // CSS 모듈 가져오기
+
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false); // 로딩 상태 추가
   const router = useRouter();
 
   const {
@@ -53,7 +56,9 @@ export default function Home() {
     setStep(step - 1);
   };
 
+  // 여행 정보 저장 및 백단으로부터 AI 여행일정 데이터 가져오기
   const handleFinish = async () => {
+    setIsLoading(true); // 로딩 상태 시작
     setDestination(destination);
     setStartDate(dateRange ? dateRange[0] : '');
     setEndDate(dateRange ? dateRange[1] : '');
@@ -62,9 +67,9 @@ export default function Home() {
     const startDate = dateRange ? dateRange[0] : '';
     const endDate = dateRange ? dateRange[1] : '';
 
-    const response = await callTravelPlanAPI(destination, startDate, endDate);
-
     try {
+      const response = await callTravelPlanAPI(destination, startDate, endDate);
+
       // JSON 문자열을 객체로 변환
       const parsedData: TravelPlan[] = JSON.parse(response);
 
@@ -73,11 +78,12 @@ export default function Home() {
       travelPlanData.push(...parsedData); // 새 데이터를 배열에 추가
 
       console.log('Parsed travel plan data: ', travelPlanData);
+      router.push('/plan'); // 페이지 이동
     } catch (error) {
       console.error('JSON 파싱 실패: ', error);
+    } finally {
+      setIsLoading(false); // 로딩 상태 종료
     }
-
-    router.push('/plan'); // 페이지 이동
   };
 
   return (
@@ -121,6 +127,26 @@ export default function Home() {
           onNext={handleFinish}
           onPrevious={handlePreviousStep}
         />
+      )}
+
+      {/* 로딩 팝업 */}
+      {isLoading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center">
+            <p className="text-xl font-semibold text-gray-700 mb-4">
+              여행 일정을 준비 중입니다.
+            </p>
+            {/* 점 3개 순서대로 점프하는 애니메이션 */}
+            <div className="flex space-x-2 mt-2">
+              <div className={`w-4 h-4 bg-blue-500 rounded-full ${styles['animate-bounce-custom']} ${styles['dot-1']}`}></div>
+              <div className={`w-4 h-4 bg-blue-500 rounded-full ${styles['animate-bounce-custom']} ${styles['dot-2']}`}></div>
+              <div className={`w-4 h-4 bg-blue-500 rounded-full ${styles['animate-bounce-custom']} ${styles['dot-3']}`}></div>
+            </div>
+            <p className="text-gray-500 text-sm mt-4">
+              잠시만 기다려 주세요.
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );
