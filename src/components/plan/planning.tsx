@@ -21,10 +21,10 @@ const Planning = () => {
     destination,
     startDate,
     endDate,
-    setDayLocations,
-    dayLocations,
-    setSelectedDay,
-    selectedDay,
+    setDateLocations,
+    dateLocations,
+    setSelectedDate,
+    selectedDate,
     setFocusedLocation,
     setFocusedRoute,
   } = useTravelStore();
@@ -33,20 +33,20 @@ const Planning = () => {
     if (!destination || !startDate || !endDate) {
       router.push('/'); // 데이터가 없으면 홈으로 리다이렉트
     } else {
-      setDayLocations(travelPlanData); // dayLocations 설정
+      setDateLocations(travelPlanData); // DateLocations 설정
     }
-  }, [destination, startDate, endDate, router, setDayLocations]);
+  }, [destination, startDate, endDate, router, setDateLocations]);
 
   const handleRouteClick = (from: string, to: string) => {
-    const fromLocation = dayLocations.flatMap(day => day.locations).find(loc => loc.name === from);
-    const toLocation = dayLocations.flatMap(day => day.locations).find(loc => loc.name === to);
+    const fromLocation = dateLocations.flatMap(date => date.locations).find(loc => loc.name === from);
+    const toLocation = dateLocations.flatMap(date => date.locations).find(loc => loc.name === to);
     if (fromLocation && toLocation) {
       window.open(`https://www.google.com/maps/dir/?api=1&origin=${fromLocation.lat},${fromLocation.lng}&destination=${toLocation.lat},${toLocation.lng}`, '_blank');
     }
   };
 
   const handleRouteMouseEnter = (from: string, to: string) => {
-    const route = dayLocations.flatMap(day => day.routes).find(r => r.from === from && r.to === to);
+    const route = dateLocations.flatMap(date => date.routes).find(r => r.from === from && r.to === to);
     setFocusedRoute(route || null);
   };
 
@@ -66,8 +66,8 @@ const Planning = () => {
     setSelectedLocation(location); // 마커 클릭 시 모달 열기
   };
 
-  const handleDayClick = (day: number | null) => {
-    setSelectedDay(day);
+  const handleDateClick = (date: number | null) => {
+    setSelectedDate(date);
     setIsSidebarOpen(false); // 사이드바를 닫음
   };
 
@@ -91,18 +91,18 @@ const Planning = () => {
       >
         <nav className="flex flex-col space-y-4">
           <button
-            onClick={() => handleDayClick(null)}
+            onClick={() => handleDateClick(null)}
             className="flex items-center p-3 bg-blue-600 bg-opacity-80 hover:bg-opacity-100 text-white rounded-md shadow-md transition duration-300"
           >
             전체 일정
           </button>
-          {dayLocations.map((dayLocation, index) => (
+          {dateLocations.map((dateLocation, index) => (
             <button
               key={index}
-              onClick={() => handleDayClick(index)}
+              onClick={() => handleDateClick(index)}
               className="flex items-center p-3 bg-blue-600 bg-opacity-80 hover:bg-opacity-100 text-white rounded-md shadow-md transition duration-300"
             >
-              {dayLocation.day}
+              {dateLocation.date}
             </button>
           ))}
         </nav>
@@ -147,7 +147,7 @@ const Planning = () => {
           {/* 지도 */}
           <section className="w-2/3 flex-grow">
             <div className="w-full h-full bg-white border rounded-lg shadow-lg p-6">
-              <MapComponent travelPlanData={selectedDay !== null ? [dayLocations[selectedDay]] : dayLocations} onMarkerClick={handleMarkerClick} />
+              <MapComponent travelPlanData={selectedDate !== null ? [dateLocations[selectedDate]] : dateLocations} onMarkerClick={handleMarkerClick} />
             </div>
           </section>
         </div>

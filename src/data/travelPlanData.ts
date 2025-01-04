@@ -17,7 +17,7 @@ export interface Route {
 
 export interface TravelPlan {
     index: number;
-    day: string;
+    date: string;
     locations: TravelLocation[];
     routes: Route[];
 }

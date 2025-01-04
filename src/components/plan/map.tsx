@@ -17,7 +17,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerCli
   const mapRef = useRef<google.maps.Map | null>(null);
   const focusedLocation = useTravelStore((state) => state.focusedLocation);
   const focusedRoute = useTravelStore((state) => state.focusedRoute);
-  const selectedDay = useTravelStore((state) => state.selectedDay);
+  const selectedDate = useTravelStore((state) => state.selectedDate);
   const colors = useTravelStore((state) => state.colors);
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
@@ -59,7 +59,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerCli
 
   return (
     <GoogleMap
-      key={selectedDay}
+      key={selectedDate}
       mapContainerStyle={containerStyle}
       center={travelPlanData[0]?.locations[0] || { lat: 0, lng: 0 }}
       zoom={14}
@@ -68,16 +68,16 @@ const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerCli
         scrollwheel: true,
       }}
     >
-      {travelPlanData.map((dayLocation, dayIndex) => {
-        if (!dayLocation || !dayLocation.locations) {
+      {travelPlanData.map((dateLocation, dateIndex) => {
+        if (!dateLocation || !dateLocation.locations) {
           return null;
         }
 
-        const color = colors[dayLocation.index];
-        // console.log('dayLocation.index : ', dayLocation.index);
+        const color = colors[dateLocation.index];
+        // console.log('dateLocation.index : ', dateLocation.index);
         return (
-          <React.Fragment key={dayLocation.day}>
-            {dayLocation.locations.map((location, index) => (
+          <React.Fragment key={dateLocation.date}>
+            {dateLocation.locations.map((location, index) => (
               <Marker
                 key={index}
                 position={{ lat: location.lat, lng: location.lng }}
@@ -86,19 +86,19 @@ const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerCli
                 onClick={() => onMarkerClick(location)}
               />
             ))}
-            {dayLocation.routes.map((route, index) => {
-              const fromLocation = dayLocation.locations.find(loc => loc.name === route.from);
-              const toLocation = dayLocation.locations.find(loc => loc.name === route.to);
+            {dateLocation.routes.map((route, index) => {
+              const fromLocation = dateLocation.locations.find(loc => loc.name === route.from);
+              const toLocation = dateLocation.locations.find(loc => loc.name === route.to);
 
               if (fromLocation && toLocation) {
                 const pathArray = [fromLocation, toLocation];
 
                 // console.log('route.from:', route.from);
                 // console.log('route.to:', route.to);
-                // console.log('selectedDay:', selectedDay);
+                // console.log('selectedDate:', selectedDate);
                 return (
                   <Polyline
-                    key={`${route.from}-${route.to}-${selectedDay}`}
+                    key={`${route.from}-${route.to}-${selectedDate}`}
                     path={pathArray}
                     options={{
                       strokeColor: focusedRoute === route ? '#FFFF00' : color,
