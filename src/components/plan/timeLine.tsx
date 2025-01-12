@@ -3,8 +3,8 @@ import { useTravelStore } from '@/store/useTravelStore';
 import { TravelLocation } from '@/data/travelPlanData';
 
 interface TimelineProps {
-  onRouteClick: (from: string, to: string) => void;
-  onRouteMouseEnter: (from: string, to: string) => void;
+  onRouteClick: (fromLocation: string, toLocation: string) => void;
+  onRouteMouseEnter: (fromLocation: string, toLocation: string) => void;
   onRouteMouseLeave: () => void;
   onLocationMouseLeave: () => void;
   onLocationClick: (location: TravelLocation) => void;
@@ -74,8 +74,8 @@ const TimeLine: React.FC<TimelineProps> = ({
                   <li className="flex items-center space-x-2 pl-14">
                     <div
                       className="cursor-pointer text-blue-500 underline hover:text-blue-700 transition duration-300"
-                      onClick={() => onRouteClick(dateLocation.routes[locIndex].from, dateLocation.routes[locIndex].to)}
-                      onMouseEnter={() => onRouteMouseEnter(dateLocation.routes[locIndex].from, dateLocation.routes[locIndex].to)}
+                      onClick={() => onRouteClick(dateLocation.routes[locIndex].fromLocation, dateLocation.routes[locIndex].toLocation)}
+                      onMouseEnter={() => onRouteMouseEnter(dateLocation.routes[locIndex].fromLocation, dateLocation.routes[locIndex].toLocation)}
                       onMouseLeave={onRouteMouseLeave}
                     >
                       {methodToText(dateLocation.routes[locIndex].method)} ({dateLocation.routes[locIndex].time})

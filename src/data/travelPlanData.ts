@@ -9,14 +9,14 @@ export interface TravelLocation {
 }
 
 export interface Route {
-    from: string;
-    to: string;
+    fromLocation: string;
+    toLocation: string;
     method: number; // 1: 자동차, 2: 대중교통, 3: 도보
     time: string;
 }
 
 export interface TravelPlan {
-    index: number;
+    tripIndex: number;
     date: string;
     locations: TravelLocation[];
     routes: Route[];
