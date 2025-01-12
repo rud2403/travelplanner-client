@@ -30,13 +30,13 @@ const GoogleLoginContent = () => { // Renamed for clarity
             try {
                 const data = await fetchData(code);
                 console.log("data : ", data);
-
+    
                 if (data) {
                     localStorage.setItem('jwtToken', data.data);
-
+    
                     const decodedToken: DecodedToken = jwtDecode<DecodedToken>(data.data);
                     console.log("Decoded Token: ", decodedToken);
-
+    
                     updateUserInfo({
                         sub: decodedToken.sub,
                         name: decodedToken.name,
@@ -45,9 +45,7 @@ const GoogleLoginContent = () => { // Renamed for clarity
                         nickname: decodedToken.nickname
                     });
                 }
-
-                console.log('userInfo : ', userInfo);
-
+    
                 if (state) {
                     router.push(decodeURIComponent(state));
                 } else {
@@ -59,13 +57,14 @@ const GoogleLoginContent = () => { // Renamed for clarity
                 setLoading(false);
             }
         };
-
+    
         if (code) {
             postCodeToServer();
         } else {
             setLoading(false);
         }
-    }, [code, state, router, updateUserInfo, userInfo]);
+    }, [code, state, router, updateUserInfo]);
+    
 
     useEffect(() => {
         console.log('Updated userInfo:', userInfo);
