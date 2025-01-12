@@ -9,6 +9,7 @@ import TravelModal from '@/components/modal/travelModal';
 import travelPlanData from '@/data/travelPlanData';
 import { TravelLocation } from '@/data/travelPlanData';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { saveTravelPlanAPI } from '@/services/travelPlan';
 
 const Planning = () => {
   const [response, setResponse] = useState<string | null>(null);
@@ -71,9 +72,27 @@ const Planning = () => {
     setIsSidebarOpen(false); // 사이드바를 닫음
   };
 
+  const handleSavePlan = async () => {
+    const travelPlan = {
+      destination,
+      startDate,
+      endDate,
+      dates: dateLocations,
+    };
+
+    const jwtToken = localStorage.getItem('jwtToken');
+
+    try {
+      const result = await saveTravelPlanAPI(travelPlan, jwtToken);
+      console.log('Plan saved successfully:', result);
+    } catch (error) {
+      console.error('Error saving plan:', error);
+    }
+  };
+
   return (
     <main className="flex min-h-screen bg-gray-50">
-      {/* 햄버거 메뉴 아이콘 */}
+      {/* 사이드바 열기 아이콘 */}
       <div className="fixed top-1/2 left-0 transform -translate-y-1/2 z-50">
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -133,23 +152,31 @@ const Planning = () => {
           </div>
         </div>
 
-        <div className="flex-grow flex">
-          {/* 타임라인 */}
-          <section className="w-1/3 pr-6">
-            <Timeline
-              onRouteClick={handleRouteClick}
-              onRouteMouseEnter={handleRouteMouseEnter}
-              onRouteMouseLeave={handleRouteMouseLeave}
-              onLocationMouseLeave={handleLocationMouseLeave}
-              onLocationClick={handleLocationClick}
-            />
-          </section>
-          {/* 지도 */}
-          <section className="w-2/3 flex-grow">
-            <div className="w-full h-full bg-white border rounded-lg shadow-lg p-6">
-              <MapComponent travelPlanData={selectedDate !== null ? [dateLocations[selectedDate]] : dateLocations} onMarkerClick={handleMarkerClick} />
-            </div>
-          </section>
+        <div className="flex-grow flex flex-col">
+          <button
+            onClick={handleSavePlan}
+            className="self-end mb-4 px-6 py-3 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition duration-300"
+          >
+            여행일정 저장
+          </button>
+          <div className="flex-grow flex">
+            {/* 타임라인 */}
+            <section className="w-1/3 pr-6">
+              <Timeline
+                onRouteClick={handleRouteClick}
+                onRouteMouseEnter={handleRouteMouseEnter}
+                onRouteMouseLeave={handleRouteMouseLeave}
+                onLocationMouseLeave={handleLocationMouseLeave}
+                onLocationClick={handleLocationClick}
+              />
+            </section>
+            {/* 지도 */}
+            <section className="w-2/3 flex-grow">
+              <div className="w-full h-full bg-white border rounded-lg shadow-lg p-6">
+                <MapComponent travelPlanData={selectedDate !== null ? [dateLocations[selectedDate]] : dateLocations} onMarkerClick={handleMarkerClick} />
+              </div>
+            </section>
+          </div>
         </div>
       </section>
       
