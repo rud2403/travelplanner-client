@@ -46,7 +46,7 @@ const Planning = () => {
   };
 
   const handleRouteMouseEnter = (from: string, to: string) => {
-    const route = dateLocations.flatMap(date => date.routes).find(r => r.from === from && r.to === to);
+    const route = dateLocations.flatMap(date => date.routes).find(r => r.fromLocation === from && r.toLocation === to);
     setFocusedRoute(route || null);
   };
 
