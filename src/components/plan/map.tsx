@@ -73,7 +73,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerCli
           return null;
         }
 
-        const color = colors[dateLocation.index];
+        const color = colors[dateLocation.tripIndex];
         // console.log('dateLocation.index : ', dateLocation.index);
         return (
           <React.Fragment key={dateLocation.date}>
@@ -87,8 +87,8 @@ const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerCli
               />
             ))}
             {dateLocation.routes.map((route, index) => {
-              const fromLocation = dateLocation.locations.find(loc => loc.name === route.from);
-              const toLocation = dateLocation.locations.find(loc => loc.name === route.to);
+              const fromLocation = dateLocation.locations.find(loc => loc.name === route.fromLocation);
+              const toLocation = dateLocation.locations.find(loc => loc.name === route.toLocation);
 
               if (fromLocation && toLocation) {
                 const pathArray = [fromLocation, toLocation];
@@ -98,7 +98,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerCli
                 // console.log('selectedDate:', selectedDate);
                 return (
                   <Polyline
-                    key={`${route.from}-${route.to}-${selectedDate}`}
+                    key={`${route.fromLocation}-${route.toLocation}-${selectedDate}`}
                     path={pathArray}
                     options={{
                       strokeColor: focusedRoute === route ? '#FFFF00' : color,
