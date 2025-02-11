@@ -70,12 +70,126 @@ export default function Home() {
     try {
       const response = await callTravelPlanAPI(destination, startDate, endDate);
 
+      // API 호출 대신 로컬 데이터 사용
+    //   const response = [
+    //     {
+    //         "id": 1,
+    //         "tripId": 1,
+    //         "date": "2025-01-13",
+    //         "tripIndex": 0,
+    //         "routes": [
+    //             {
+    //                 "id": 1,
+    //                 "dateId": 1,
+    //                 "method": 2,
+    //                 "fromLocation": "호텔",
+    //                 "toLocation": "오사카성",
+    //                 "time": "30분"
+    //             },
+    //             {
+    //                 "id": 2,
+    //                 "dateId": 1,
+    //                 "method": 2,
+    //                 "fromLocation": "오사카성",
+    //                 "toLocation": "오사카 수족관",
+    //                 "time": "40분"
+    //             },
+    //             {
+    //                 "id": 3,
+    //                 "dateId": 1,
+    //                 "method": 3,
+    //                 "fromLocation": "오사카 수족관",
+    //                 "toLocation": "도톤보리 거리",
+    //                 "time": "30분"
+    //             }
+    //         ],
+    //         "locations": [
+    //             {
+    //                 "id": 1,
+    //                 "dateId": 1,
+    //                 "name": "오사카성",
+    //                 "description": "오사카를 대표하는 랜드마크인 오사카성을 도보로 방문합니다.",
+    //                 "lat": 34.6937378,
+    //                 "lng": 135.5021651,
+    //                 "startTime": "09:00",
+    //                 "endTime": "11:00",
+    //                 "type": 1
+    //             },
+    //             {
+    //                 "id": 2,
+    //                 "dateId": 1,
+    //                 "name": "오사카 수족관",
+    //                 "description": "다양한 해양 생물을 관찰할 수 있는 오사카 수족관을 관람합니다.",
+    //                 "lat": 34.687315,
+    //                 "lng": 135.526201,
+    //                 "startTime": "13:00",
+    //                 "endTime": "15:00",
+    //                 "type": 1
+    //             },
+    //             {
+    //                 "id": 3,
+    //                 "dateId": 1,
+    //                 "name": "도톤보리 거리",
+    //                 "description": "도톤보리 거리에서 오사카의 번화가와 맛집을 즐깁니다.",
+    //                 "lat": 34.6654427,
+    //                 "lng": 135.4323384,
+    //                 "startTime": "17:00",
+    //                 "endTime": "20:00",
+    //                 "type": 1
+    //             }
+    //         ]
+    //     },
+    //     {
+    //         "id": 2,
+    //         "tripId": 1,
+    //         "date": "2025-01-14",
+    //         "tripIndex": 1,
+    //         "routes": [
+    //             {
+    //                 "id": 4,
+    //                 "dateId": 2,
+    //                 "method": 2,
+    //                 "fromLocation": "호텔",
+    //                 "toLocation": "신오사카 역",
+    //                 "time": "20분"
+    //             }
+    //         ],
+    //         "locations": [
+    //             {
+    //                 "id": 4,
+    //                 "dateId": 2,
+    //                 "name": "오사카 아쿠아 리비エ라 호텔 체크아웃",
+    //                 "description": "오사카에서 아름다운 풍경을 감상할 수 있는 아쿠아 리비에라 호텔에서 체크아웃합니다.",
+    //                 "lat": 34.6937382,
+    //                 "lng": 135.5021651,
+    //                 "startTime": "10:00",
+    //                 "endTime": "10:30",
+    //                 "type": 3
+    //             },
+    //             {
+    //                 "id": 5,
+    //                 "dateId": 2,
+    //                 "name": "신오사카 (Shin-Osaka) 역",
+    //                 "description": "신오사카 역에서 나라 역으로 이동합니다.",
+    //                 "lat": 34.702485,
+    //                 "lng": 135.495951,
+    //                 "startTime": "11:00",
+    //                 "endTime": "11:30",
+    //                 "type": 3
+    //             }
+    //         ]
+    //     }
+    // ]
+
+      console.log('Response from API: ', response);
+
       // JSON 문자열을 객체로 변환
-      const parsedData: TravelPlan[] = JSON.parse(response);
+      // const parsedData: TravelPlan[] = JSON.parse(response);
 
       // travelPlanData 배열을 비우고 새 데이터를 추가
       travelPlanData.length = 0; // 기존 배열 비우기
-      travelPlanData.push(...parsedData); // 새 데이터를 배열에 추가
+      // travelPlanData.push(...parsedData); // 새 데이터를 배열에 추가
+      travelPlanData.push(...response); // 새 데이터를 배열에 추가
 
       console.log('Parsed travel plan data: ', travelPlanData);
       router.push('/plan'); // 페이지 이동
