@@ -65,13 +65,19 @@ export default function Header() {
                                         href="/user/myInfo"
                                         className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
                                     >
-                                        My Info
+                                        내 정보
+                                    </Link>
+                                    <Link
+                                        href={`/plan/list/${userInfo.nickname}`}
+                                        className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                                    >
+                                        내 여행 일정
                                     </Link>
                                     <button
                                         onClick={handleLogout}
                                         className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
                                     >
-                                        Logout
+                                        로그아웃
                                     </button>
                                 </div>
                             )}
