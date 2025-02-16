@@ -45,7 +45,7 @@ export const saveTravelPlanAPI = async (travelPlan: any, jwtToken: string | null
       });
       console.log('response : ', response);
   
-      return response.data.data;
+      return JSON.parse(response.data.data);
     } catch (error) {
       console.error('chatGpt assistant 호출 실패 :', error);
       throw error;
