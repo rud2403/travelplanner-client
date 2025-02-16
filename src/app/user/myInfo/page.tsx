@@ -18,13 +18,13 @@ export default function MyInfo() {
 
     const handleSaveChanges = async () => {
         if (!userInfo) {
-            alert('User information is not available.');
+            alert('올바르지 않은 유저 정보입니다.');
             return;
         }
 
         try {
             if (!nickname || !userInfo.email) {
-                alert('Nickname or Email is not available.');
+                alert('닉네임 또는 이메일이 올바르지 않습니다.');
                 return;
             }
 
@@ -37,10 +37,10 @@ export default function MyInfo() {
             };
 
             updateUserInfo(updatedUserInfo);
-            alert('User information updated successfully');
+            alert('유저 정보 수정이 완료되었습니다.');
         } catch (error) {
             console.error('Error updating user information:', error);
-            alert('Failed to update user information');
+            alert('유저 정보 수정에 실패했습니다.');
         }
     };
 
