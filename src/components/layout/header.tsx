@@ -85,7 +85,7 @@ export default function Header() {
                         </div>
                     ) : (
                         <>
-                            <Link href="/user/signin" className="text-gray-800 hover:text-blue-500 transition duration-300">Sign In</Link>
+                            <Link href="/auth/signin" className="text-gray-800 hover:text-blue-500 transition duration-300">로그인</Link>
                             <Link href="/about" className="text-gray-800 hover:text-blue-500 transition duration-300">About</Link>
                             <Link href="/contact" className="text-gray-800 hover:text-blue-500 transition duration-300">Contact</Link>
                         </>

@@ -12,7 +12,7 @@ export default function MyInfo() {
 
     useEffect(() => {
         if (!isLoggedIn) {
-            router.push('/user/signin');
+            router.push('/auth/signin');
         }
     }, [isLoggedIn, router]);
 
