@@ -71,115 +71,117 @@ export default function Home() {
       const response = await callTravelPlanAPI(destination, startDate, endDate);
 
       // API 호출 대신 로컬 데이터 사용
-    //   const response = [
-    //     {
-    //         "id": 1,
-    //         "tripId": 1,
-    //         "date": "2025-01-13",
-    //         "tripIndex": 0,
-    //         "routes": [
-    //             {
-    //                 "id": 1,
-    //                 "dateId": 1,
-    //                 "method": 2,
-    //                 "fromLocation": "호텔",
-    //                 "toLocation": "오사카성",
-    //                 "time": "30분"
-    //             },
-    //             {
-    //                 "id": 2,
-    //                 "dateId": 1,
-    //                 "method": 2,
-    //                 "fromLocation": "오사카성",
-    //                 "toLocation": "오사카 수족관",
-    //                 "time": "40분"
-    //             },
-    //             {
-    //                 "id": 3,
-    //                 "dateId": 1,
-    //                 "method": 3,
-    //                 "fromLocation": "오사카 수족관",
-    //                 "toLocation": "도톤보리 거리",
-    //                 "time": "30분"
-    //             }
-    //         ],
-    //         "locations": [
-    //             {
-    //                 "id": 1,
-    //                 "dateId": 1,
-    //                 "name": "오사카성",
-    //                 "description": "오사카를 대표하는 랜드마크인 오사카성을 도보로 방문합니다.",
-    //                 "lat": 34.6937378,
-    //                 "lng": 135.5021651,
-    //                 "startTime": "09:00",
-    //                 "endTime": "11:00",
-    //                 "type": 1
-    //             },
-    //             {
-    //                 "id": 2,
-    //                 "dateId": 1,
-    //                 "name": "오사카 수족관",
-    //                 "description": "다양한 해양 생물을 관찰할 수 있는 오사카 수족관을 관람합니다.",
-    //                 "lat": 34.687315,
-    //                 "lng": 135.526201,
-    //                 "startTime": "13:00",
-    //                 "endTime": "15:00",
-    //                 "type": 1
-    //             },
-    //             {
-    //                 "id": 3,
-    //                 "dateId": 1,
-    //                 "name": "도톤보리 거리",
-    //                 "description": "도톤보리 거리에서 오사카의 번화가와 맛집을 즐깁니다.",
-    //                 "lat": 34.6654427,
-    //                 "lng": 135.4323384,
-    //                 "startTime": "17:00",
-    //                 "endTime": "20:00",
-    //                 "type": 1
-    //             }
-    //         ]
-    //     },
-    //     {
-    //         "id": 2,
-    //         "tripId": 1,
-    //         "date": "2025-01-14",
-    //         "tripIndex": 1,
-    //         "routes": [
-    //             {
-    //                 "id": 4,
-    //                 "dateId": 2,
-    //                 "method": 2,
-    //                 "fromLocation": "호텔",
-    //                 "toLocation": "신오사카 역",
-    //                 "time": "20분"
-    //             }
-    //         ],
-    //         "locations": [
-    //             {
-    //                 "id": 4,
-    //                 "dateId": 2,
-    //                 "name": "오사카 아쿠아 리비エ라 호텔 체크아웃",
-    //                 "description": "오사카에서 아름다운 풍경을 감상할 수 있는 아쿠아 리비에라 호텔에서 체크아웃합니다.",
-    //                 "lat": 34.6937382,
-    //                 "lng": 135.5021651,
-    //                 "startTime": "10:00",
-    //                 "endTime": "10:30",
-    //                 "type": 3
-    //             },
-    //             {
-    //                 "id": 5,
-    //                 "dateId": 2,
-    //                 "name": "신오사카 (Shin-Osaka) 역",
-    //                 "description": "신오사카 역에서 나라 역으로 이동합니다.",
-    //                 "lat": 34.702485,
-    //                 "lng": 135.495951,
-    //                 "startTime": "11:00",
-    //                 "endTime": "11:30",
-    //                 "type": 3
-    //             }
-    //         ]
-    //     }
-    // ]
+      // const response = [
+      //   {
+      //     "tripIndex": 0,
+      //     "date": "2025-02-18",
+      //     "routes": [
+      //       {
+      //         "method": 3,
+      //         "fromLocation": "관서 지구",
+      //         "time": "도보로 10분",
+      //         "toLocation": "도톤보리"
+      //       },
+      //       {
+      //         "method": 3,
+      //         "fromLocation": "도톤보리",
+      //         "time": "도보로 15분",
+      //         "toLocation": "신사이바시 스시"
+      //       },
+      //       {
+      //         "method": 3,
+      //         "fromLocation": "신사이바시 스시",
+      //         "time": "도보로 5분",
+      //         "toLocation": "호텔 라 팤"
+      //       }
+      //     ],
+      //     "locations": [
+      //       {
+      //         "lng": 135.5021651,
+      //         "name": "관서 지구",
+      //         "description": "오사카를 대표하는 번화가로 쇼핑 및 음식을 즐기기에 좋은 장소입니다.",
+      //         "startTime": "09:00",
+      //         "endTime": "12:00",
+      //         "type": 1,
+      //         "lat": 34.6937378
+      //       },
+      //       {
+      //         "lng": 135.5013897,
+      //         "name": "도톤보리",
+      //         "description": "유명한 관광 명소로 식당과 상점이 밀집해있는 지역입니다.",
+      //         "startTime": "13:00",
+      //         "endTime": "16:00",
+      //         "type": 1,
+      //         "lat": 34.6937259
+      //       },
+      //       {
+      //         "lng": 135.495558,
+      //         "name": "신사이바시 스시",
+      //         "description": "지역 주민들이 자주 찾는 맛집으로 신선한 회를 맛볼 수 있습니다.",
+      //         "startTime": "18:00",
+      //         "endTime": "19:30",
+      //         "type": 2,
+      //         "lat": 34.693837
+      //       },
+      //       {
+      //         "lng": 135.4959928,
+      //         "name": "호텔 라 팤",
+      //         "description": "오사카에서 휴식을 취할 수 있는 편안한 숙박 시설입니다.",
+      //         "startTime": "20:00",
+      //         "endTime": "",
+      //         "type": 3,
+      //         "lat": 34.6949104
+      //       }
+      //     ]
+      //   },
+      //   {
+      //     "tripIndex": 1,
+      //     "date": "2025-02-19",
+      //     "routes": [
+      //       {
+      //         "method": 2,
+      //         "fromLocation": "도톤보리",
+      //         "time": "지하철로 15분",
+      //         "toLocation": "오사카 성"
+      //       },
+      //       {
+      //         "method": 3,
+      //         "fromLocation": "오사카 성",
+      //         "time": "도보로 10분",
+      //         "toLocation": "마루야마 파크"
+      //       }
+      //     ],
+      //     "locations": [
+      //       {
+      //         "lng": 135.5013897,
+      //         "name": "도톤보리",
+      //         "description": "유명한 관광 명소로 식당과 상점이 밀집해있는 지역입니다.",
+      //         "startTime": "09:00",
+      //         "endTime": "12:00",
+      //         "type": 1,
+      //         "lat": 34.6937259
+      //       },
+      //       {
+      //         "lng": 135.525548,
+      //         "name": "오사카 성",
+      //         "description": "일본 역사와 문화를 경험할 수 있는 오사카의 랜드마크입니다.",
+      //         "startTime": "13:00",
+      //         "endTime": "16:00",
+      //         "type": 1,
+      //         "lat": 34.687315
+      //       },
+      //       {
+      //         "lng": 135.527655,
+      //         "name": "마루야마 파크",
+      //         "description": "자연 경관이 아름다운 공원으로 산책하기에 좋은 장소입니다.",
+      //         "startTime": "16:30",
+      //         "endTime": "18:00",
+      //         "type": 1,
+      //         "lat": 34.685295
+      //       }
+      //     ]
+      //   }
+      // ]
 
       console.log('Response from API: ', response);
 
