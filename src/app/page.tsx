@@ -8,7 +8,7 @@ import LocationPickerModal from '@/containers/picker/locationPicker';
 import { callTravelPlanAPI } from '@/services/travelPlan';
 import { useTravelStore } from '@/store/useTravelStore';
 import 'react-calendar/dist/Calendar.css';
-import { travelPlanData, TravelPlan } from '@/data/travelPlanData';
+import { travelPlanData } from '@/data/travelPlanData';
 
 import styles from './page.module.css'; // CSS 모듈 가져오기
 
@@ -185,11 +185,9 @@ export default function Home() {
 
       console.log('Response from API: ', response);
 
-      // JSON 문자열을 객체로 변환
-      // const parsedData: TravelPlan[] = JSON.parse(response);
-
       // travelPlanData 배열을 비우고 새 데이터를 추가
       travelPlanData.length = 0; // 기존 배열 비우기
+      
       // travelPlanData.push(...parsedData); // 새 데이터를 배열에 추가
       travelPlanData.push(...response); // 새 데이터를 배열에 추가
 

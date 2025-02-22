@@ -84,7 +84,7 @@ const Planning = () => {
 
     try {
       const result = await saveTravelPlanAPI(travelPlan, jwtToken);
-      console.log('Plan saved successfully:', result);
+      console.log('여행 일정 저장 완료:', result);
     } catch (error) {
       console.error('Error saving plan:', error);
     }
