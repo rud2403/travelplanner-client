@@ -33,6 +33,7 @@ const UserPlanPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const {
+        setId,
         setDestination,
         setStartDate,
         setEndDate,
@@ -69,6 +70,7 @@ const UserPlanPage: React.FC = () => {
                 const tripData = response.data;
                 console.log('API Response:', tripData);
 
+                setId(tripData.id);
                 setDestination(tripData.destination);
                 setStartDate(tripData.startDate);
                 setEndDate(tripData.endDate);
