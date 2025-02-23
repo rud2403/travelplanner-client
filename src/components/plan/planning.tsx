@@ -19,13 +19,14 @@ const Planning = () => {
   const router = useRouter();
 
   const {
+    id,
     destination,
     startDate,
     endDate,
-    setDateLocations,
     dateLocations,
-    setSelectedDate,
     selectedDate,
+    setDateLocations,
+    setSelectedDate,
     setFocusedLocation,
     setFocusedRoute,
   } = useTravelStore();
@@ -35,6 +36,7 @@ const Planning = () => {
       router.push('/'); // 데이터가 없으면 홈으로 리다이렉트
     } else {
       setDateLocations(travelPlanData); // DateLocations 설정
+      console.log('id: ', id);
     }
   }, [destination, startDate, endDate, router, setDateLocations]);
 
@@ -104,9 +106,8 @@ const Planning = () => {
 
       {/* 사이드 */}
       <aside
-        className={`fixed top-16 bottom-16 left-0 z-40 w-64 p-6 shadow-lg transform transition-transform duration-300 ease-in-out ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } bg-transparent`}
+        className={`fixed top-16 bottom-16 left-0 z-40 w-64 p-6 shadow-lg transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } bg-transparent`}
       >
         <nav className="flex flex-col space-y-4">
           <button
@@ -153,12 +154,14 @@ const Planning = () => {
         </div>
 
         <div className="flex-grow flex flex-col">
-          <button
-            onClick={handleSavePlan}
-            className="self-end mb-4 px-6 py-3 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition duration-300"
-          >
-            여행일정 저장
-          </button>
+          {id == 0 && (
+            <button
+              onClick={handleSavePlan}
+              className="self-end mb-4 px-6 py-3 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition duration-300"
+            >
+              여행 일정 저장
+            </button>
+          )}
           <div className="flex-grow flex">
             {/* 타임라인 */}
             <section className="w-1/3 pr-6">
@@ -179,7 +182,7 @@ const Planning = () => {
           </div>
         </div>
       </section>
-      
+
       {selectedLocation && (
         <TravelModal
           location={selectedLocation}

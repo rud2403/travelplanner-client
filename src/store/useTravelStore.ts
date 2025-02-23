@@ -3,6 +3,7 @@ import { devtools } from 'zustand/middleware';
 import { TravelPlan, Route, TravelLocation } from '@/data/travelPlanData';
 
 interface TravelState {
+  id: number;
   destination: string;
   startDate: string;
   endDate: string;
@@ -11,6 +12,7 @@ interface TravelState {
   focusedLocation: TravelLocation | null;
   focusedRoute: Route | null;
   colors: string[];
+  setId: (id: number) => void;
   setDestination: (destination: string) => void;
   setStartDate: (startDate: string) => void;
   setEndDate: (endDate: string) => void;
@@ -23,6 +25,7 @@ interface TravelState {
 
 export const useTravelStore = create<TravelState>()(
   devtools((set) => ({
+    id: 0,
     destination: '',
     startDate: '',
     endDate: '',
@@ -31,6 +34,7 @@ export const useTravelStore = create<TravelState>()(
     focusedLocation: null,
     focusedRoute: null,
     colors: ['#FF5733', '#33C1FF', '#33FF57', '#FFC133', '#C133FF', '#FF33A6', '#33FFD1', '#FF8F33', '#33FF8F', '#8F33FF'],
+    setId: (id) => set({ id }),
     setDestination: (destination) => set({ destination }),
     setStartDate: (startDate) => set({ startDate }),
     setEndDate: (endDate) => set({ endDate }),
@@ -40,6 +44,7 @@ export const useTravelStore = create<TravelState>()(
     setFocusedRoute: (route) => set({ focusedRoute: route }),
     resetState: () =>
       set({
+        id: 0,
         destination: '',
         startDate: '',
         endDate: '',
