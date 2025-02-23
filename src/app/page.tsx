@@ -20,6 +20,7 @@ export default function Home() {
 
   const {
     resetState,
+    setId,
     setDestination,
     setStartDate,
     setEndDate,
@@ -56,12 +57,14 @@ export default function Home() {
     setStep(step - 1);
   };
 
-  // 여행 정보 저장 및 백단으로부터 AI 여행일정 데이터 가져오기
+  // 모달 마지막 단계에서 호출되는 함수
   const handleFinish = async () => {
     setIsLoading(true); // 로딩 상태 시작
+    setId(0); // 여행일정 생성임을 나타내기위해 id를 0으로 설정
     setDestination(destination);
     setStartDate(dateRange ? dateRange[0] : '');
     setEndDate(dateRange ? dateRange[1] : '');
+    
     resetLocalState(); // Reset local state
 
     const startDate = dateRange ? dateRange[0] : '';
