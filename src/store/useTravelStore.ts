@@ -5,6 +5,7 @@ import { TravelPlan, Route, TravelLocation } from '@/data/travelPlanData';
 interface TravelState {
   id: number;
   destination: string;
+  country: string;
   startDate: string;
   endDate: string;
   dateLocations: TravelPlan[];
@@ -14,6 +15,7 @@ interface TravelState {
   colors: string[];
   setId: (id: number) => void;
   setDestination: (destination: string) => void;
+  setCountry: (country: string) => void;
   setStartDate: (startDate: string) => void;
   setEndDate: (endDate: string) => void;
   setDateLocations: (dateLocations: TravelPlan[]) => void;
@@ -27,6 +29,7 @@ export const useTravelStore = create<TravelState>()(
   devtools((set) => ({
     id: 0,
     destination: '',
+    country: '',
     startDate: '',
     endDate: '',
     dateLocations: [],
@@ -36,6 +39,7 @@ export const useTravelStore = create<TravelState>()(
     colors: ['#FF5733', '#33C1FF', '#33FF57', '#FFC133', '#C133FF', '#FF33A6', '#33FFD1', '#FF8F33', '#33FF8F', '#8F33FF'],
     setId: (id) => set({ id }),
     setDestination: (destination) => set({ destination }),
+    setCountry: (country) => set({ country }),
     setStartDate: (startDate) => set({ startDate }),
     setEndDate: (endDate) => set({ endDate }),
     setDateLocations: (dateLocations) => set({ dateLocations }),
@@ -46,6 +50,7 @@ export const useTravelStore = create<TravelState>()(
       set({
         id: 0,
         destination: '',
+        country: '',
         startDate: '',
         endDate: '',
         dateLocations: [],

@@ -4,6 +4,7 @@ export interface TravelLocation {
     name: string;
     type: number;
     description: string;
+    country: string;
     startTime: string;
     endTime: string;
 }
@@ -22,6 +23,7 @@ export interface TravelPlan {
     routes: Route[];
 }
 
+// open api를 통해 받아온 데이터를 저장하는 변수
 export let travelPlanData: TravelPlan[] = [];
 
 export default travelPlanData;

@@ -9,6 +9,7 @@ import { callTravelPlanAPI } from '@/services/travelPlan';
 import { useTravelStore } from '@/store/useTravelStore';
 import 'react-calendar/dist/Calendar.css';
 import { travelPlanData } from '@/data/travelPlanData';
+import { countryCodes } from '@/data/travelLocations';
 
 import styles from './page.module.css'; // CSS 모듈 가져오기
 
@@ -22,6 +23,7 @@ export default function Home() {
     resetState,
     setId,
     setDestination,
+    setCountry,
     setStartDate,
     setEndDate,
     // setNumberOfPeople,
@@ -30,8 +32,8 @@ export default function Home() {
 
   const [destination, setLocalDestination] = useState('');
   const [dateRange, setLocalDateRange] = useState<[string, string] | null>(null);
-  const [numberOfPeople, setLocalNumberOfPeople] = useState(1);
-  const [budget, setLocalBudget] = useState(0);
+  // const [numberOfPeople, setLocalNumberOfPeople] = useState(1);
+  // const [budget, setLocalBudget] = useState(0);
 
   const toggleModal = () => {
     if (isModalOpen) {
@@ -45,8 +47,8 @@ export default function Home() {
   const resetLocalState = () => {
     setLocalDestination('');
     setLocalDateRange(null);
-    setLocalNumberOfPeople(1);
-    setLocalBudget(0);
+    // setLocalNumberOfPeople(1);
+    // setLocalBudget(0);
   };
 
   const handleNextStep = () => {
@@ -62,6 +64,7 @@ export default function Home() {
     setIsLoading(true); // 로딩 상태 시작
     setId(0); // 여행일정 생성임을 나타내기위해 id를 0으로 설정
     setDestination(destination);
+    setCountry(countryCodes[destination.split(' - ')[0]]); // 국가 코드 설정
     setStartDate(dateRange ? dateRange[0] : '');
     setEndDate(dateRange ? dateRange[1] : '');
     

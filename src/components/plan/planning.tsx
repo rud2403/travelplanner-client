@@ -21,6 +21,7 @@ const Planning = () => {
   const {
     id,
     destination,
+    country,
     startDate,
     endDate,
     dateLocations,
@@ -77,6 +78,7 @@ const Planning = () => {
   const handleSavePlan = async () => {
     const travelPlan = {
       destination,
+      country,
       startDate,
       endDate,
       dates: dateLocations,
