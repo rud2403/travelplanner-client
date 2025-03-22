@@ -22,6 +22,7 @@ const Planning = () => {
     id,
     destination,
     country,
+    description,
     startDate,
     endDate,
     dateLocations,
@@ -137,8 +138,10 @@ const Planning = () => {
             <h2 className="text-5xl font-extrabold text-blue-600">{destination}</h2>
           </div>
           <div className="mb-8">
+            <p className="text-lg text-gray-600">{description}</p>
             <p className="text-lg text-gray-600">{startDate} ~ {endDate}</p>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {response && (
               <div className="mt-4 p-6 bg-green-100 text-green-800 rounded-lg">

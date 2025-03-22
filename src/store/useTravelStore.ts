@@ -6,6 +6,7 @@ interface TravelState {
   id: number;
   destination: string;
   country: string;
+  description: string;
   startDate: string;
   endDate: string;
   dateLocations: TravelPlan[];
@@ -16,6 +17,7 @@ interface TravelState {
   setId: (id: number) => void;
   setDestination: (destination: string) => void;
   setCountry: (country: string) => void;
+  setDescription: (description: string) => void;
   setStartDate: (startDate: string) => void;
   setEndDate: (endDate: string) => void;
   setDateLocations: (dateLocations: TravelPlan[]) => void;
@@ -30,6 +32,7 @@ export const useTravelStore = create<TravelState>()(
     id: 0,
     destination: '',
     country: '',
+    description: '',
     startDate: '',
     endDate: '',
     dateLocations: [],
@@ -40,6 +43,7 @@ export const useTravelStore = create<TravelState>()(
     setId: (id) => set({ id }),
     setDestination: (destination) => set({ destination }),
     setCountry: (country) => set({ country }),
+    setDescription: (description) => set({ description }),
     setStartDate: (startDate) => set({ startDate }),
     setEndDate: (endDate) => set({ endDate }),
     setDateLocations: (dateLocations) => set({ dateLocations }),
@@ -51,6 +55,7 @@ export const useTravelStore = create<TravelState>()(
         id: 0,
         destination: '',
         country: '',
+        description: '',
         startDate: '',
         endDate: '',
         dateLocations: [],

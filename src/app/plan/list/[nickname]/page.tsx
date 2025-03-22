@@ -35,6 +35,7 @@ const UserPlanPage: React.FC = () => {
     const {
         setId,
         setDestination,
+        setDescription,
         setStartDate,
         setEndDate,
     } = useTravelStore();
@@ -72,6 +73,7 @@ const UserPlanPage: React.FC = () => {
 
                 setId(tripData.id);
                 setDestination(tripData.destination);
+                setDescription(tripData.description);
                 setStartDate(tripData.startDate);
                 setEndDate(tripData.endDate);
 
