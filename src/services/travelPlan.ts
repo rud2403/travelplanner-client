@@ -71,4 +71,27 @@ export const getTravelPlanByIdAPI = async (travelId: number) => {
     }
 };
 
-export default { saveTravelPlanAPI, callTravelPlanAPI, getTravelPlanByIdAPI };
+/**
+ * 여행 설명을 수정하는 API
+ * @param tripId 여행 ID
+ * @param updateData 수정할 TripDTO (부분 필드 포함 가능)
+ * @param jwtToken 인증 토큰
+ * @returns 서버 응답
+ */
+export const updateTripDescriptionAPI = async (tripId: number, updateData: any, jwtToken: string | null) => {
+  try {
+    const response = await axios.patch(`/api/travelplan/${tripId}`, updateData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${jwtToken}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error(`여행 설명 수정 실패 (ID: ${tripId})`, error);
+    throw error;
+  }
+};
+
+export default { saveTravelPlanAPI, callTravelPlanAPI, getTravelPlanByIdAPI, updateTripDescriptionAPI };

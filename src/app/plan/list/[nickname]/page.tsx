@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { getTravelPlanByIdAPI } from '@/services/travelPlan';
+import { getTravelPlanByIdAPI, updateTripDescriptionAPI } from '@/services/travelPlan';
 import { travelPlanData } from '@/data/travelPlanData';
 import { useTravelStore } from '@/store/useTravelStore';
 
@@ -31,6 +31,10 @@ const UserPlanPage: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [openMenuId, setOpenMenuId] = useState<number | null>(null); // 메뉴 토글용
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingTripId, setEditingTripId] = useState<number | null>(null);
+    const [newDescription, setNewDescription] = useState<string>('');
 
     const {
         setId,
@@ -42,7 +46,6 @@ const UserPlanPage: React.FC = () => {
 
     useEffect(() => {
         if (nickname) {
-            console.log('Fetching trips for:', nickname);
             axios.get(`/api/user/trips?nickname=${nickname}`)
                 .then(response => {
                     if (response.data.status === 200) {
@@ -63,13 +66,10 @@ const UserPlanPage: React.FC = () => {
     const handleTripSelect = async (tripId: number) => {
         try {
             setIsLoading(true);
-            console.log(`Fetching travel details for Trip ID: ${tripId}`);
-
             const response = await getTravelPlanByIdAPI(tripId);
 
             if (response.status === 200) {
                 const tripData = response.data;
-                console.log('API Response:', tripData);
 
                 setId(tripData.id);
                 setDestination(tripData.destination);
@@ -82,12 +82,56 @@ const UserPlanPage: React.FC = () => {
 
                 router.push('/plan');
             } else {
-                console.error("Failed to fetch trip details:", response.message);
+                console.error("여행 정보 조회 실패:", response.message);
             }
         } catch (error) {
-            console.error('Failed to fetch trip details:', error);
+            console.error('여행 상세 조회 실패:', error);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const toggleMenu = (tripId: number) => {
+        setOpenMenuId(prev => (prev === tripId ? null : tripId));
+    };
+
+    const handleDeleteTrip = (tripId: number) => {
+        console.log("삭제 요청:", tripId);
+        // TODO: axios.delete(`/api/travelplan/${tripId}`)
+        setOpenMenuId(null);
+    };
+
+    const handleEditTrip = (tripId: number) => {
+        const selectedTrip = trips.find(t => t.id === tripId);
+        if (selectedTrip) {
+            setEditingTripId(tripId);
+            setNewDescription(selectedTrip.description || '');
+            setIsEditModalOpen(true);
+            setOpenMenuId(null); // 메뉴 닫기
+        }
+    };
+
+    const handleSaveDescription = async () => {
+        if (editingTripId !== null) {
+            try {
+                const jwtToken = localStorage.getItem('jwtToken');
+                const updateData = { description: newDescription };
+
+                await updateTripDescriptionAPI(editingTripId, updateData, jwtToken);
+
+                // 상태 업데이트
+                setTrips(prev =>
+                    prev.map(t =>
+                        t.id === editingTripId ? { ...t, description: newDescription } : t
+                    )
+                );
+                setIsEditModalOpen(false);
+                setEditingTripId(null);
+
+                alert('여행 설명이 업데이트되었습니다.');
+            } catch (error) {
+                console.error('설명 업데이트 실패:', error);
+            }
         }
     };
 
@@ -120,29 +164,69 @@ const UserPlanPage: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                         {trips.map(trip => {
                             let imageUrl = DEFAULT_IMAGE;
-                            if (trip.country === 'JP') {
-                                imageUrl = JP_IMAGE;
-                            } else if (trip.country === 'US') {
-                                imageUrl = US_IMAGE;
-                            } else if (trip.country === 'VN') {
-                                imageUrl = VN_IMAGE;
-                            }
+                            if (trip.country === 'JP') imageUrl = JP_IMAGE;
+                            else if (trip.country === 'US') imageUrl = US_IMAGE;
+                            else if (trip.country === 'VN') imageUrl = VN_IMAGE;
 
                             return (
-                                <div 
-                                    key={trip.id} 
-                                    className="relative bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200 cursor-pointer transform transition duration-300 hover:scale-105"
+                                <div
+                                    key={trip.id}
+                                    className="relative group bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200 cursor-pointer transform transition duration-300 hover:scale-105"
                                     onClick={() => handleTripSelect(trip.id)}
                                 >
-                                    <img 
-                                        src={imageUrl} 
-                                        alt={trip.destination} 
+                                    <img
+                                        src={imageUrl}
+                                        alt={trip.destination}
                                         className="w-full h-56 object-cover"
                                         onError={(e) => (e.currentTarget.src = DEFAULT_IMAGE)}
                                     />
+
+                                    {/* 국가 태그 */}
                                     <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-xs px-3 py-1 rounded-full uppercase tracking-wide">
                                         {trip.country === 'JP' ? '일본' : trip.country === 'US' ? '미국' : trip.country === 'VN' ? '베트남' : '기타'}
                                     </div>
+
+                                    {/* 점 3개 버튼 */}
+                                    <div className="absolute top-2 right-2 z-30">
+                                        <div className="relative">
+                                            <button
+                                                className="flex items-center justify-center w-8 h-10 rounded-full bg-white bg-opacity-70 text-gray-500 hover:text-gray-800 hover:bg-opacity-100 shadow transition-all duration-200"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    toggleMenu(trip.id);
+                                                }}
+                                            >
+                                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" />
+                                                </svg>
+                                            </button>
+
+                                            {openMenuId === trip.id && (
+                                                <div className="absolute right-0 mt-2 w-28 bg-white border rounded shadow-md z-50">
+                                                    <button
+                                                        className="block w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleEditTrip(trip.id);
+                                                        }}
+                                                    >
+                                                        수정
+                                                    </button>
+                                                    <button
+                                                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-100"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation(); // 상위 카드 클릭 방지
+                                                            handleDeleteTrip(trip.id);
+                                                        }}
+                                                    >
+                                                        삭제
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* 본문 */}
                                     <div className="p-6">
                                         <h2 className="text-xl font-semibold text-gray-800">{trip.destination}</h2>
                                         <p className="text-gray-500 mt-2 text-sm">{trip.description}</p>
@@ -160,7 +244,6 @@ const UserPlanPage: React.FC = () => {
                 )}
             </div>
 
-            {/* 로딩 모달 */}
             {isLoading && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                     <div className="bg-white p-6 rounded-lg shadow-lg text-center">
@@ -173,6 +256,34 @@ const UserPlanPage: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            {isEditModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+                        <h2 className="text-lg font-bold text-gray-800 mb-4">여행 설명 수정</h2>
+                        <textarea
+                            value={newDescription}
+                            onChange={(e) => setNewDescription(e.target.value)}
+                            className="w-full h-32 border rounded-md p-2 text-sm text-gray-800"
+                        />
+                        <div className="mt-4 flex justify-end space-x-2">
+                            <button
+                                onClick={() => setIsEditModalOpen(false)}
+                                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={handleSaveDescription}
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            >
+                                저장
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };
