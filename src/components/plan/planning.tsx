@@ -90,8 +90,10 @@ const Planning = () => {
     try {
       const result = await saveTravelPlanAPI(travelPlan, jwtToken);
       console.log('여행 일정 저장 완료:', result);
+      alert('여행 일정이 성공적으로 저장되었습니다!');
     } catch (error) {
       console.error('Error saving plan:', error);
+      alert('여행 일정 저장에 실패했습니다. 다시 시도해 주세요.');
     }
   };
 

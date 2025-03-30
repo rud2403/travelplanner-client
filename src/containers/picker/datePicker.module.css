@@ -1,19 +1,50 @@
+.singleDate {
+    background-color: #e0f2fe !important;
+    border: 2px solid #3b82f6 !important;
+    color: #1e40af !important;
+    border-radius: 0 !important;
+    position: relative;
+    font-weight: bold;
+    z-index: 10;
+}
+
 .highlight {
-    background-color: rgb(203, 229, 246);
+    background-color: #dbeafe !important;
+    box-shadow: inset 0 0 0 1px #e0f2fe; /* 더 짝짝한 구분을 위한 경계선 */
+    transition: none !important;
+    position: relative;
+    border-radius: 0 !important;
+    z-index: 5;
+    color: inherit !important;
 }
 
 .startDate {
-    background-color: blue;
-    color: white;
+    background-color: #dbeafe !important;
+    border-left: 2px solid #3b82f6 !important;
+    border-top: 1px solid #bfdbfe !important;
+    border-bottom: 1px solid #bfdbfe !important;
+    color: #1e40af !important;
+    border-radius: 0 !important;
+    position: relative;
+    font-weight: bold;
+    z-index: 10;
 }
 
 .endDate {
-    background-color: blue;
-    color: white;
+    background-color: #dbeafe !important;
+    border-right: 2px solid #3b82f6 !important;
+    border-top: 1px solid #bfdbfe !important;
+    border-bottom: 1px solid #bfdbfe !important;
+    color: #1e40af !important;
+    border-radius: 0 !important;
+    position: relative;
+    font-weight: bold;
+    z-index: 10;
 }
 
 .saturday {
-    color: blue;
+    color: #3b82f6;
+    font-weight: 500;
 }
 
 .weekday {
@@ -21,7 +52,8 @@
 }
 
 .sunday {
-    color: red;
+    color: #ef4444;
+    font-weight: 500;
 }
 
 .navigationLabel {
@@ -62,6 +94,10 @@
 }
 
 .modalTitle {
-    color: black;
-    font-size: 3rem;
+    color: #1e3a8a;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
