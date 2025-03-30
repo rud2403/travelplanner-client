@@ -94,4 +94,31 @@ export const updateTripDescriptionAPI = async (tripId: number, updateData: any, 
   }
 };
 
-export default { saveTravelPlanAPI, callTravelPlanAPI, getTravelPlanByIdAPI, updateTripDescriptionAPI };
+/**
+ * 여행을 삭제하는 API
+ * @param tripId 여행 ID
+ * @param jwtToken 인증 토큰
+ * @returns 서버 응답
+ */
+export const deleteTripAPI = async (tripId: number, jwtToken: string | null) => {
+    try {
+        const response = await axios.delete(`/api/travelplan/${tripId}`, {
+            headers: {
+                'Authorization': `Bearer ${jwtToken}`,
+            },
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error(`여행 삭제 실패 (ID: ${tripId})`, error);
+        throw error;
+    }
+};
+
+export default { 
+    saveTravelPlanAPI, 
+    callTravelPlanAPI, 
+    getTravelPlanByIdAPI, 
+    updateTripDescriptionAPI, 
+    deleteTripAPI 
+};

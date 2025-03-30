@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { getTravelPlanByIdAPI, updateTripDescriptionAPI } from '@/services/travelPlan';
+import { getTravelPlanByIdAPI, updateTripDescriptionAPI, deleteTripAPI } from '@/services/travelPlan';
 import { travelPlanData } from '@/data/travelPlanData';
 import { useTravelStore } from '@/store/useTravelStore';
 
@@ -95,10 +95,20 @@ const UserPlanPage: React.FC = () => {
         setOpenMenuId(prev => (prev === tripId ? null : tripId));
     };
 
-    const handleDeleteTrip = (tripId: number) => {
-        console.log("삭제 요청:", tripId);
-        // TODO: axios.delete(`/api/travelplan/${tripId}`)
-        setOpenMenuId(null);
+    const handleDeleteTrip = async (tripId: number) => {
+        try {
+            const jwtToken = localStorage.getItem('jwtToken');
+            await deleteTripAPI(tripId, jwtToken);
+
+            // 상태 업데이트
+            setTrips(prev => prev.filter(t => t.id !== tripId));
+            alert('여행이 삭제되었습니다.');
+        } catch (error) {
+            console.error('여행 삭제 실패:', error);
+            alert('여행 삭제 중 오류가 발생했습니다.');
+        } finally {
+            setOpenMenuId(null);
+        }
     };
 
     const handleEditTrip = (tripId: number) => {
