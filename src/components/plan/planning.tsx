@@ -16,6 +16,7 @@ const Planning = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<TravelLocation | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+  const [hoveredLocation, setHoveredLocation] = useState<TravelLocation | null>(null);
   const router = useRouter();
 
   const {
@@ -59,16 +60,31 @@ const Planning = () => {
     setFocusedRoute(null);
   };
 
+  const handleLocationMouseEnter = (location: TravelLocation) => {
+    setHoveredLocation(location); // 마우스 오버 시 마커만 확대
+  };
+
   const handleLocationMouseLeave = () => {
-    setFocusedLocation(null);
+    setHoveredLocation(null);
   };
 
   const handleLocationClick = (location: TravelLocation) => {
     setFocusedLocation(location); // 타임라인 클릭 시 지도 위치 이동
+    
+    // 일시적으로 포커스 설정 후 해제 (0.8초 후)
+    setTimeout(() => {
+      setFocusedLocation(null);
+    }, 800);
   };
 
   const handleMarkerClick = (location: TravelLocation) => {
+    setFocusedLocation(location); // 마커 클릭 시 포커스 설정
     setSelectedLocation(location); // 마커 클릭 시 모달 열기
+    
+    // 일시적으로 포커스 설정 후 해제 (0.8초 후)
+    setTimeout(() => {
+      setFocusedLocation(null);
+    }, 800);
   };
 
   const handleDateClick = (date: number | null) => {
@@ -176,6 +192,7 @@ const Planning = () => {
                 onRouteClick={handleRouteClick}
                 onRouteMouseEnter={handleRouteMouseEnter}
                 onRouteMouseLeave={handleRouteMouseLeave}
+                onLocationMouseEnter={handleLocationMouseEnter}
                 onLocationMouseLeave={handleLocationMouseLeave}
                 onLocationClick={handleLocationClick}
               />
@@ -183,7 +200,11 @@ const Planning = () => {
             {/* 지도 */}
             <section className="w-2/3 flex-grow">
               <div className="w-full h-full bg-white border rounded-lg shadow-lg p-6">
-                <MapComponent travelPlanData={selectedDate !== null ? [dateLocations[selectedDate]] : dateLocations} onMarkerClick={handleMarkerClick} />
+                <MapComponent 
+                  travelPlanData={selectedDate !== null ? [dateLocations[selectedDate]] : dateLocations} 
+                  onMarkerClick={handleMarkerClick} 
+                  hoveredLocation={hoveredLocation}
+                />
               </div>
             </section>
           </div>

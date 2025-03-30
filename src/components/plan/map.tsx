@@ -11,9 +11,10 @@ const containerStyle = {
 interface MapComponentProps {
   travelPlanData: TravelPlan[];
   onMarkerClick: (location: TravelLocation) => void;
+  hoveredLocation: TravelLocation | null;
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerClick }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerClick, hoveredLocation }) => {
   const mapRef = useRef<google.maps.Map | null>(null);
   const focusedLocation = useTravelStore((state) => state.focusedLocation);
   const focusedRoute = useTravelStore((state) => state.focusedRoute);
@@ -36,15 +37,19 @@ const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerCli
     return <div>Loading...</div>;
   }
 
-  const createCustomMarkerIcon = (color: string, isFocused: boolean) => ({
-    path: google.maps.SymbolPath.CIRCLE,
-    fillColor: color,
-    fillOpacity: 1,
-    strokeColor: '#000',
-    strokeWeight: isFocused ? 2 : 1,
-    scale: isFocused ? 16 : 8,
-    labelOrigin: new google.maps.Point(0, 0),
-  });
+  const createCustomMarkerIcon = (color: string, location: TravelLocation) => {
+    const isHovered = hoveredLocation === location;
+    const isFocused = focusedLocation === location;
+    return {
+      path: google.maps.SymbolPath.CIRCLE,
+      fillColor: color,
+      fillOpacity: 1,
+      strokeColor: '#000',
+      strokeWeight: isFocused || isHovered ? 2 : 1,
+      scale: isFocused || isHovered ? 16 : 8,
+      labelOrigin: new google.maps.Point(0, 0),
+    };
+  };
 
   const createCustomLabel = (label: string) => ({
     text: label,
@@ -80,7 +85,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerCli
               <Marker
                 key={index}
                 position={{ lat: location.lat, lng: location.lng }}
-                icon={createCustomMarkerIcon(color, focusedLocation === location)}
+                icon={createCustomMarkerIcon(color, location)}
                 label={createCustomLabel((index + 1).toString())}
                 onClick={() => onMarkerClick(location)}
               />

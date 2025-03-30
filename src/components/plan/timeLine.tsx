@@ -6,6 +6,7 @@ interface TimelineProps {
   onRouteClick: (fromLocation: string, toLocation: string) => void;
   onRouteMouseEnter: (fromLocation: string, toLocation: string) => void;
   onRouteMouseLeave: () => void;
+  onLocationMouseEnter: (location: TravelLocation) => void;
   onLocationMouseLeave: () => void;
   onLocationClick: (location: TravelLocation) => void;
 }
@@ -14,6 +15,7 @@ const TimeLine: React.FC<TimelineProps> = ({
   onRouteClick,
   onRouteMouseEnter,
   onRouteMouseLeave,
+  onLocationMouseEnter,
   onLocationMouseLeave,
   onLocationClick,
 }) => {
@@ -48,7 +50,7 @@ const TimeLine: React.FC<TimelineProps> = ({
         <div key={dateLocation.date} className="bg-white p-6 rounded-lg shadow-lg min-w-[300px]">
           <div className="mb-4">
             <h3 className="text-3xl font-bold text-center" style={{ color: colors[selectedDate ?? dateIndex] }}>
-              Date {selectedDate !== null ? selectedDate + 1 : dateIndex + 1}
+            {selectedDate !== null ? selectedDate + 1 : dateIndex + 1}일차
             </h3>
             <p className="text-center text-gray-500">{dateLocation.date}</p>
           </div>
@@ -57,10 +59,11 @@ const TimeLine: React.FC<TimelineProps> = ({
               <React.Fragment key={locIndex}>
                 <li
                   className="flex items-center space-x-4 cursor-pointer hover:bg-gray-100 p-3 rounded-md transition duration-300"
+                  onMouseEnter={() => onLocationMouseEnter(location)}
                   onMouseLeave={onLocationMouseLeave}
                   onClick={() => onLocationClick(location)}
                 >
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full text-white font-bold" style={{ backgroundColor: colors[selectedDate ?? dateIndex] }}>
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full text-white font-bold flex-shrink-0" style={{ backgroundColor: colors[selectedDate ?? dateIndex], aspectRatio: "1 / 1", minWidth: "2.5rem" }}>
                     {locIndex + 1}
                   </div>
                   <div>
