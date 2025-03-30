@@ -116,34 +116,61 @@ const Planning = () => {
   return (
     <main className="flex min-h-screen bg-gray-50">
       {/* 사이드바 열기 아이콘 */}
-      <div className="fixed top-1/2 left-0 transform -translate-y-1/2 z-50">
+      <div className={`fixed top-1/2 left-0 transform -translate-y-1/2 z-50 transition-all duration-300 ${isSidebarOpen ? 'translate-x-64' : 'translate-x-0'}`}>
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="text-white bg-blue-600 p-3 rounded-full shadow-lg focus:outline-none"
+          className="group relative flex items-center justify-center h-12 w-12 bg-white rounded-r-xl shadow-lg hover:shadow-xl transition-all duration-300 border-t border-r border-b border-blue-100 focus:outline-none overflow-hidden"
+          aria-label={isSidebarOpen ? '사이드바 닫기' : '사이드바 열기'}
         >
-          {isSidebarOpen ? <FaArrowLeft size={24} /> : <FaArrowRight size={24} />}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-100 to-indigo-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10 flex items-center justify-center">
+            {isSidebarOpen ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              </svg>
+            )}
+          </div>
+          <span className="sr-only">{isSidebarOpen ? '닫기' : '열기'}</span>
+          
+          {/* 툴팁 */}
+          <div className={`absolute left-full ml-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isSidebarOpen ? 'hidden' : 'block'}`}>
+            일정 보기
+            <div className="absolute left-0 top-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-45 w-2 h-2 bg-gray-900"></div>
+          </div>
         </button>
       </div>
 
       {/* 사이드 */}
       <aside
-        className={`fixed top-16 bottom-16 left-0 z-40 w-64 p-6 shadow-lg transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          } bg-transparent`}
+        className={`fixed top-16 bottom-16 left-0 z-40 w-64 p-6 shadow-xl transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } bg-gradient-to-b from-blue-50 to-indigo-50 rounded-r-2xl border-r border-t border-b border-blue-100`}
       >
+        <h2 className="text-xl font-bold mb-6 text-blue-800 text-center border-b border-blue-200 pb-4">여행 일정</h2>
         <nav className="flex flex-col space-y-4">
           <button
             onClick={() => handleDateClick(null)}
-            className="flex items-center p-3 bg-blue-600 bg-opacity-80 hover:bg-opacity-100 text-white rounded-md shadow-md transition duration-300"
+            className="flex items-center p-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
           >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
             전체 일정
           </button>
           {dateLocations.map((dateLocation, index) => (
             <button
               key={index}
               onClick={() => handleDateClick(index)}
-              className="flex items-center p-3 bg-blue-600 bg-opacity-80 hover:bg-opacity-100 text-white rounded-md shadow-md transition duration-300"
+              className="flex items-center p-3 bg-white text-blue-800 rounded-lg shadow-md hover:shadow-lg hover:bg-blue-50 transition-all duration-300 border border-blue-100"
             >
-              {dateLocation.date}
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="font-medium">{index + 1}일차</span>
+              <span className="ml-auto text-xs text-gray-500">{dateLocation.date}</span>
             </button>
           ))}
         </nav>
@@ -151,13 +178,18 @@ const Planning = () => {
 
       {/* 메인 */}
       <section className={`flex-grow bg-white p-8 flex flex-col text-gray-800 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <div className="w-full max-w-6xl mx-auto mb-8 text-center">
+        <div className="w-full max-w-6xl mx-auto mb-8 text-center bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 shadow-lg">
           <div className="mb-4">
-            <h2 className="text-5xl font-extrabold text-blue-600">{destination}</h2>
+            <h2 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{destination}</h2>
           </div>
-          <div className="mb-8">
-            <p className="text-lg text-gray-600">{description}</p>
-            <p className="text-lg text-gray-600">{startDate} ~ {endDate}</p>
+          <div className="mb-6">
+            <p className="text-lg text-gray-700 max-w-3xl mx-auto mb-2">{description}</p>
+            <div className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-blue-100 text-blue-800">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="font-medium">{startDate} ~ {endDate}</span>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -180,14 +212,18 @@ const Planning = () => {
           {id == 0 && (
             <button
               onClick={handleSavePlan}
-              className="self-end mb-4 px-6 py-3 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition duration-300"
+              className="self-end mb-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center"
             >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
               여행 일정 저장
             </button>
           )}
-          <div className="flex-grow flex">
+          <div className="flex-grow flex flex-col md:flex-row rounded-2xl overflow-hidden shadow-xl border border-gray-100">
             {/* 타임라인 */}
-            <section className="w-1/3 pr-6">
+            <section className="w-full md:w-1/3 pr-0 md:pr-6 bg-gray-50 p-4">
+              <div className="sticky top-4">
               <Timeline
                 onRouteClick={handleRouteClick}
                 onRouteMouseEnter={handleRouteMouseEnter}
@@ -196,10 +232,11 @@ const Planning = () => {
                 onLocationMouseLeave={handleLocationMouseLeave}
                 onLocationClick={handleLocationClick}
               />
+              </div>
             </section>
             {/* 지도 */}
-            <section className="w-2/3 flex-grow">
-              <div className="w-full h-full bg-white border rounded-lg shadow-lg p-6">
+            <section className="w-full md:w-2/3 flex-grow bg-white">
+              <div className="w-full h-full p-4">
                 <MapComponent 
                   travelPlanData={selectedDate !== null ? [dateLocations[selectedDate]] : dateLocations} 
                   onMarkerClick={handleMarkerClick} 
@@ -212,10 +249,12 @@ const Planning = () => {
       </section>
 
       {selectedLocation && (
-        <TravelModal
-          location={selectedLocation}
-          onClose={() => setSelectedLocation(null)}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 backdrop-blur-sm flex items-center justify-center">
+          <TravelModal
+            location={selectedLocation}
+            onClose={() => setSelectedLocation(null)}
+          />
+        </div>
       )}
     </main>
   );

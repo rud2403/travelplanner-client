@@ -2,32 +2,32 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { getTravelPlanByIdAPI, updateTripDescriptionAPI, deleteTripAPI } from '@/services/travelPlan';
+import { getTravelPlanByIdAPI, updateTripDescriptionAPI, deleteTripAPI, getPagedTripsByNickname } from '@/services/travelPlan';
 import { travelPlanData } from '@/data/travelPlanData';
 import { useTravelStore } from '@/store/useTravelStore';
+import { Trip } from '@/types/trip';
+import { TripPageData } from '@/types/tripPage';
+import LoadingOverlay from '@/components/travel/LoadingOverlay';
+import ErrorDisplay from '@/components/travel/ErrorDisplay';
+import EmptyTripsDisplay from '@/components/travel/EmptyTripsDisplay';
+import TripCard from '@/components/travel/TripCard';
+import Pagination from '@/components/travel/Pagination';
+import EditDescriptionModal from '@/components/travel/EditDescriptionModal';
 
-interface Trip {
-    id: number;
-    userId: number;
-    destination: string;
-    description: string;
-    country: string;
-    startDate: string;
-    endDate: string;
-    imageUrl?: string;
-}
-
-const DEFAULT_IMAGE = "/images/travel_default.png";
-const JP_IMAGE = "/images/travel_japan.png";
-const US_IMAGE = "/images/travel_usa.png";
-const VN_IMAGE = "/images/travel_vietnam.png";
-
-const UserPlanPage: React.FC = () => {
-    const { nickname } = useParams();
+const UserPlanPage = () => {
+    const params = useParams();
+    const nicknameParam = Array.isArray(params.nickname) 
+        ? params.nickname[0] 
+        : params.nickname;
+    
+    console.log('URL 매개변수 목록:', params);
+    console.log('nickname 값:', nicknameParam);
+    
     const router = useRouter();
 
-    const [trips, setTrips] = useState<Trip[]>([]);
+    const [tripPage, setTripPage] = useState<TripPageData | null>(null);
+    const [currentPage, setCurrentPage] = useState<number>(0);
+    const [pageSize, setPageSize] = useState<number>(8);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -44,24 +44,100 @@ const UserPlanPage: React.FC = () => {
         setEndDate,
     } = useTravelStore();
 
+    // 직접 API 응답 확인
     useEffect(() => {
-        if (nickname) {
-            axios.get(`/api/user/trips?nickname=${nickname}`)
-                .then(response => {
-                    if (response.data.status === 200) {
-                        setTrips(response.data.data);
-                    } else {
-                        setError(response.data.message || "여행 데이터를 불러올 수 없습니다.");
+        const checkAPI = async () => {
+            if (!nicknameParam) return;
+            try {
+                // 직접 fetch 요청 보내기
+                const origResponse = await fetch(`/api/user/trips?nickname=${nicknameParam}`);
+                const jsonData = await origResponse.json();
+                console.log('원래 API 호출 응답:', jsonData);
+                
+                if (jsonData.data && Array.isArray(jsonData.data)) {
+                    console.log('가져온 여행 데이터 개수:', jsonData.data.length);
+                    
+                    // 응답 제대로 처리
+                    if (jsonData.status === 200) {
+                        setTripPage({
+                            content: jsonData.data,
+                            pageNumber: 0,
+                            pageSize: jsonData.data.length,
+                            totalPages: 1,
+                            totalElements: jsonData.data.length,
+                            first: true,
+                            last: true
+                        });
+                        setLoading(false);
                     }
-                    setLoading(false);
-                })
-                .catch(error => {
-                    console.error('Error fetching trip data:', error);
-                    setError("여행 데이터를 불러오는 중 오류가 발생했습니다.");
-                    setLoading(false);
-                });
+                }
+            } catch (err) {
+                console.error('원래 API 호출 오류:', err);
+            }
+        };
+        
+        checkAPI();
+    }, [nicknameParam]);
+
+    const fetchTrips = async (page: number = 0) => {
+        if (!nicknameParam) return;
+        
+        setLoading(true);
+        try {
+            const response = await getPagedTripsByNickname(String(nicknameParam), page, pageSize);
+            
+            console.log('fetchTrips: API 응답 전체:', response);
+            
+            // response 구조 분석
+            if (response.status === 200) {
+                // 응답이 data 필드에 다시 데이터를 포함하는 경우 (일반적 백엔드 응답 패턴)
+                if (response.data && typeof response.data === 'object') {
+                    console.log('Page 상태 업데이트. 데이터:', response.data);
+                    
+                    // response.data.data가 TripPageData 형태인 경우
+                    if (response.data.content || (response.data.data && response.data.data.content)) {
+                        const pageData = response.data.content ? response.data : response.data.data;
+                        setTripPage(pageData);
+                    }
+                    // response.data.data가 Trip[] 배열인 경우 (페이징되지 않은 데이터)
+                    else if (Array.isArray(response.data.data)) {
+                        console.log('페이징되지 않은 데이터 변환:', response.data.data);
+                        // 배열을 페이징 형태로 변환
+                        setTripPage({
+                            content: response.data.data,
+                            pageNumber: 0,
+                            pageSize: response.data.data.length,
+                            totalPages: 1,
+                            totalElements: response.data.data.length,
+                            first: true,
+                            last: true
+                        });
+                    } else {
+                        console.error('알 수 없는 응답 데이터 형식');
+                        setError('여행 데이터 구조가 잘못되었습니다.');
+                    }
+                } else {
+                    setError('여행 데이터 구조가 잘못되었습니다.');
+                }
+            } else {
+                setError(response.message || "여행 데이터를 불러올 수 없습니다.");
+            }
+        } catch (error) {
+            console.error('여행 데이터 조회 실패:', error);
+            setError("여행 데이터를 불러오는 중 오류가 발생했습니다.");
+        } finally {
+            setLoading(false);
         }
-    }, [nickname]);
+    };
+
+    useEffect(() => {
+        console.log('URL 파라미터 nicknameParam:', nicknameParam);
+        if (nicknameParam) {
+            fetchTrips(currentPage);
+        } else {
+            console.error('nicknameParam이 없습니다!');
+        }
+    }, [nicknameParam, currentPage, pageSize]);
 
     const handleTripSelect = async (tripId: number) => {
         try {
@@ -100,8 +176,8 @@ const UserPlanPage: React.FC = () => {
             const jwtToken = localStorage.getItem('jwtToken');
             await deleteTripAPI(tripId, jwtToken);
 
-            // 상태 업데이트
-            setTrips(prev => prev.filter(t => t.id !== tripId));
+            // 여행 삭제 후 해당 페이지를 다시 불러옴
+            fetchTrips(currentPage);
             alert('여행이 삭제되었습니다.');
         } catch (error) {
             console.error('여행 삭제 실패:', error);
@@ -112,7 +188,9 @@ const UserPlanPage: React.FC = () => {
     };
 
     const handleEditTrip = (tripId: number) => {
-        const selectedTrip = trips.find(t => t.id === tripId);
+        if (!tripPage || !tripPage.content) return;
+        
+        const selectedTrip = tripPage.content.find(t => t.id === tripId);
         if (selectedTrip) {
             setEditingTripId(tripId);
             setNewDescription(selectedTrip.description || '');
@@ -129,12 +207,8 @@ const UserPlanPage: React.FC = () => {
 
                 await updateTripDescriptionAPI(editingTripId, updateData, jwtToken);
 
-                // 상태 업데이트
-                setTrips(prev =>
-                    prev.map(t =>
-                        t.id === editingTripId ? { ...t, description: newDescription } : t
-                    )
-                );
+                // 설명 업데이트 후 페이지 다시 불러옴
+                fetchTrips(currentPage);
                 setIsEditModalOpen(false);
                 setEditingTripId(null);
 
@@ -145,155 +219,92 @@ const UserPlanPage: React.FC = () => {
         }
     };
 
+    // 페이지 이동 처리
+    const handlePageChange = (newPage: number) => {
+        setCurrentPage(newPage);
+    };
+
+    // 로딩 중이면 로딩 표시
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-screen bg-white">
-                <p className="text-lg font-semibold text-gray-600">여행 데이터를 불러오는 중...</p>
+            <div className="flex justify-center items-center h-screen bg-gradient-to-b from-blue-50 to-white">
+                <div className="text-center bg-white p-8 rounded-xl shadow-lg">
+                    <div className="flex justify-center mb-6">
+                        <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce mr-1"></div>
+                        <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce mr-1 delay-150"></div>
+                        <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce delay-300"></div>
+                    </div>
+                    <p className="text-lg font-medium text-gray-800 mb-1">여행 데이터를 불러오는 중...</p>
+                    <p className="text-sm text-gray-500">잠시만 기다려 주세요</p>
+                </div>
             </div>
         );
     }
 
+    // 에러가 있으면 에러 표시
     if (error) {
-        return (
-            <div className="flex justify-center items-center h-screen bg-white">
-                <p className="text-red-500 text-lg font-semibold">{error}</p>
-            </div>
-        );
+        return <ErrorDisplay message={error} onHomeClick={() => router.push('/')} />;
     }
 
     return (
-        <div className="bg-white min-h-screen py-10">
-            <div className="max-w-7xl mx-auto px-6">
-                <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-8">
-                    {nickname}의 여행 일정
-                </h1>
+        <div className="bg-gradient-to-b from-blue-50 to-white min-h-screen py-16 px-4">
+            <div className="max-w-7xl mx-auto">
+                <div className="text-center mb-16">
+                    <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-4">
+                        {nicknameParam}의 여행 일정
+                    </h1>
+                    <p className="text-gray-600 max-w-2xl mx-auto">
+                        지금까지 계획한 모든 여행 일정을 한눈에 확인하고 관리하세요. 클릭하여 상세 일정을 확인할 수 있습니다.
+                    </p>
+                </div>
 
-                {trips.length === 0 ? (
-                    <p className="text-center text-gray-500 text-lg">여행 일정이 없습니다.</p>
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                        {trips.map(trip => {
-                            let imageUrl = DEFAULT_IMAGE;
-                            if (trip.country === 'JP') imageUrl = JP_IMAGE;
-                            else if (trip.country === 'US') imageUrl = US_IMAGE;
-                            else if (trip.country === 'VN') imageUrl = VN_IMAGE;
+                {/* 데이터가 없을 때 표시 */}
+                {(!tripPage || !tripPage.content || tripPage.content.length === 0) && (
+                    <EmptyTripsDisplay onNewTrip={() => router.push('/')} />
+                )}
 
-                            return (
-                                <div
+                {/* 데이터가 있을 때 표시 */}
+                {tripPage && tripPage.content && tripPage.content.length > 0 && (
+                    <div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                            {tripPage.content.map(trip => (
+                                <TripCard
                                     key={trip.id}
-                                    className="relative group bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200 cursor-pointer transform transition duration-300 hover:scale-105"
-                                    onClick={() => handleTripSelect(trip.id)}
-                                >
-                                    <img
-                                        src={imageUrl}
-                                        alt={trip.destination}
-                                        className="w-full h-56 object-cover"
-                                        onError={(e) => (e.currentTarget.src = DEFAULT_IMAGE)}
-                                    />
-
-                                    {/* 국가 태그 */}
-                                    <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-xs px-3 py-1 rounded-full uppercase tracking-wide">
-                                        {trip.country === 'JP' ? '일본' : trip.country === 'US' ? '미국' : trip.country === 'VN' ? '베트남' : '기타'}
-                                    </div>
-
-                                    {/* 점 3개 버튼 */}
-                                    <div className="absolute top-2 right-2 z-30">
-                                        <div className="relative">
-                                            <button
-                                                className="flex items-center justify-center w-8 h-10 rounded-full bg-white bg-opacity-70 text-gray-500 hover:text-gray-800 hover:bg-opacity-100 shadow transition-all duration-200"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    toggleMenu(trip.id);
-                                                }}
-                                            >
-                                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" />
-                                                </svg>
-                                            </button>
-
-                                            {openMenuId === trip.id && (
-                                                <div className="absolute right-0 mt-2 w-28 bg-white border rounded shadow-md z-50">
-                                                    <button
-                                                        className="block w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleEditTrip(trip.id);
-                                                        }}
-                                                    >
-                                                        수정
-                                                    </button>
-                                                    <button
-                                                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-100"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation(); // 상위 카드 클릭 방지
-                                                            handleDeleteTrip(trip.id);
-                                                        }}
-                                                    >
-                                                        삭제
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* 본문 */}
-                                    <div className="p-6">
-                                        <h2 className="text-xl font-semibold text-gray-800">{trip.destination}</h2>
-                                        <p className="text-gray-500 mt-2 text-sm">{trip.description}</p>
-                                        <p className="text-gray-600 mt-2 text-sm">
-                                            <span className="font-medium">출발:</span> {trip.startDate}
-                                        </p>
-                                        <p className="text-gray-600 text-sm">
-                                            <span className="font-medium">도착:</span> {trip.endDate}
-                                        </p>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                    trip={trip}
+                                    onSelect={handleTripSelect}
+                                    onEdit={handleEditTrip}
+                                    onDelete={handleDeleteTrip}
+                                    openMenuId={openMenuId}
+                                    toggleMenu={toggleMenu}
+                                />
+                            ))}
+                        </div>
+                    
+                        {/* 페이지네이션 */}
+                        {tripPage.totalPages > 1 && (
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={tripPage.totalPages}
+                                isFirstPage={tripPage.first}
+                                isLastPage={tripPage.last}
+                                onPageChange={handlePageChange}
+                            />
+                        )}
                     </div>
                 )}
             </div>
 
-            {isLoading && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-                        <p className="text-lg font-semibold text-gray-700">여행 데이터를 불러오는 중...</p>
-                        <div className="mt-4 flex justify-center space-x-2">
-                            <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce"></div>
-                            <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce delay-150"></div>
-                            <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce delay-300"></div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* 로딩 오버레이 */}
+            <LoadingOverlay isVisible={isLoading} />
 
-            {isEditModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-                        <h2 className="text-lg font-bold text-gray-800 mb-4">여행 설명 수정</h2>
-                        <textarea
-                            value={newDescription}
-                            onChange={(e) => setNewDescription(e.target.value)}
-                            className="w-full h-32 border rounded-md p-2 text-sm text-gray-800"
-                        />
-                        <div className="mt-4 flex justify-end space-x-2">
-                            <button
-                                onClick={() => setIsEditModalOpen(false)}
-                                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={handleSaveDescription}
-                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                            >
-                                저장
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
+            {/* 설명 수정 모달 */}
+            <EditDescriptionModal
+                isOpen={isEditModalOpen}
+                description={newDescription}
+                onClose={() => setIsEditModalOpen(false)}
+                onSave={handleSaveDescription}
+                onChange={setNewDescription}
+            />
         </div>
     );
 };
