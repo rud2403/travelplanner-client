@@ -4,6 +4,7 @@ import Link from 'next/link';
 import useSessionStore from '@/store/useSessionStore';
 import { useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
+import { UserCircleIcon, MapIcon, ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline'; // Import icons
 
 export default function Header() {
     const { isLoggedIn, userInfo, clearUserInfo } = useSessionStore(); // Get login status, user info, and the clear function
@@ -43,51 +44,59 @@ export default function Header() {
     }, [dropdownOpen]);
 
     return (
-        <header className="bg-white shadow-md">
-            <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-                <Link href="/" className="flex items-center">
-                    <img src="/logo.png" alt="Logo" className="w-10 h-10 mr-3" />
-                    <h1 className="text-2xl font-bold text-gray-800">Travel Planner</h1>
+        <header className="bg-white shadow-sm sticky top-0 z-50"> {/* Slightly softer shadow, sticky header */}
+            <div className="container mx-auto px-6 py-3 flex justify-between items-center"> {/* Reduced padding */}
+                <Link href="/" className="flex items-center space-x-2"> {/* Added space-x for logo and title */}
+                    <img src="/logo.png" alt="Logo" className="w-8 h-8" /> {/* Slightly smaller logo */}
+                    <h1 className="text-xl font-semibold text-gray-900">Travel Planner</h1> {/* Adjusted font */}
                 </Link>
-                <nav className="flex space-x-4">
+                <nav className="flex items-center space-x-6"> {/* Increased spacing between nav items */}
                     {isLoggedIn && userInfo ? (
                         <div className="relative" ref={dropdownRef}>
                             <div
-                                className="flex items-center space-x-4 cursor-pointer"
+                                className="flex items-center space-x-3 cursor-pointer" // Adjusted spacing
                                 onClick={handleDropdownToggle}
                             >
-                                <img src={userInfo.picture} alt={userInfo.name} className="w-8 h-8 rounded-full" />
-                                <span className="text-gray-800 font-semibold">{userInfo.name}</span>
+                                <img src={userInfo.picture} alt={userInfo.name} className="w-8 h-8 rounded-full border border-gray-200" /> {/* Added subtle border */}
+                                <span className="text-gray-700 font-medium text-sm">{userInfo.name}</span> {/* Adjusted font */}
                             </div>
                             {dropdownOpen && (
-                                <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50">
+                                <div className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-50 overflow-hidden"> {/* Increased width slightly */}
+                                    {/* User Info Section (Optional) - Can add user email or other details here if needed */}
+                                    {/* <div className="px-4 py-3 border-b border-gray-100">
+                                        <p className="text-sm font-medium text-gray-900">{userInfo.name}</p>
+                                        <p className="text-xs text-gray-500">{userInfo.email}</p> 
+                                    </div> */}
                                     <Link
                                         href="/user/myInfo"
-                                        className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition duration-150 ease-in-out" // Added missing classes
                                     >
-                                        내 정보
+                                        <UserCircleIcon className="w-5 h-5 mr-2 text-gray-500" /> {/* Added User icon */}
+                                        <span>내 정보</span>
                                     </Link>
                                     <Link
                                         href={`/plan/list/${userInfo.nickname}`}
-                                        className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition duration-150 ease-in-out border-t border-gray-100" // Added separator, flex for icon
                                     >
-                                        내 여행 일정
+                                        <MapIcon className="w-5 h-5 mr-2 text-gray-500" /> {/* Added Map icon */}
+                                        <span>내 여행 일정</span>
                                     </Link>
                                     <button
                                         onClick={handleLogout}
-                                        className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                                        className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition duration-150 ease-in-out border-t border-gray-100" // Added separator, flex for icon
                                     >
-                                        로그아웃
+                                        <ArrowLeftOnRectangleIcon className="w-5 h-5 mr-2" /> {/* Added Logout icon */}
+                                        <span>로그아웃</span>
                                     </button>
                                 </div>
                             )}
-
                         </div>
                     ) : (
                         <>
-                            <Link href="/auth/signin" className="text-gray-800 hover:text-blue-500 transition duration-300">로그인</Link>
-                            <Link href="/about" className="text-gray-800 hover:text-blue-500 transition duration-300">About</Link>
-                            <Link href="/contact" className="text-gray-800 hover:text-blue-500 transition duration-300">Contact</Link>
+                            <Link href="/auth/signin" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition duration-150 ease-in-out">로그인</Link> {/* Adjusted font and hover */}
+                            {/* Removed About and Contact links for simplicity, can be added back if needed */}
+                            {/* <Link href="/about" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition duration-150 ease-in-out">About</Link> */}
+                            {/* <Link href="/contact" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition duration-150 ease-in-out">Contact</Link> */}
                         </>
                     )}
                 </nav>
