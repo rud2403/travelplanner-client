@@ -1,22 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTravelStore } from '@/store/useTravelStore';
 import MapComponent from '@/components/plan/map';
 import Timeline from '@/components/plan/timeLine';
-import TravelModal from '@/components/modal/travelModal';
 import travelPlanData from '@/data/travelPlanData';
 import { TravelLocation } from '@/data/travelPlanData';
-import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { saveTravelPlanAPI } from '@/services/travelPlan';
 
 const Planning = () => {
   const [response, setResponse] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<TravelLocation | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [hoveredLocation, setHoveredLocation] = useState<TravelLocation | null>(null);
+  const [timelineWidth, setTimelineWidth] = useState<number>(33); // 초기 타임라인 너비 33%
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const resizeRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   const {
@@ -42,6 +42,40 @@ const Planning = () => {
       console.log('id: ', id);
     }
   }, [destination, startDate, endDate, router, setDateLocations, id]);
+
+  // 마우스 드래그 이벤트 처리
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!resizeRef.current) return;
+
+    const parentElement = resizeRef.current.parentElement;
+    if (!parentElement) return;
+
+    const containerRect = parentElement.getBoundingClientRect();
+    const leftOffset = e.clientX - containerRect.left;
+
+    const newWidth = (leftOffset / containerRect.width) * 100;
+    const clampedWidth = Math.min(Math.max(newWidth, 15), 50); // 최소 15%, 최대 50%
+    setTimelineWidth(clampedWidth);
+
+    document.body.style.cursor = 'col-resize';
+  }, []);
+
+  const handleMouseUp = useCallback(() => {
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+
+    setIsDragging(false);
+    document.body.style.cursor = 'default';
+  }, [handleMouseMove]);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    setIsDragging(true);
+  }, [handleMouseMove, handleMouseUp]);
 
   const handleRouteClick = (from: string, to: string) => {
     const fromLocation = dateLocations.flatMap(date => date.locations).find(loc => loc.name === from);
@@ -70,21 +104,10 @@ const Planning = () => {
 
   const handleLocationClick = (location: TravelLocation) => {
     setFocusedLocation(location); // 타임라인 클릭 시 지도 위치 이동
-    
-    // 일시적으로 포커스 설정 후 해제 (0.8초 후)
-    setTimeout(() => {
-      setFocusedLocation(null);
-    }, 800);
   };
 
   const handleMarkerClick = (location: TravelLocation) => {
     setFocusedLocation(location); // 마커 클릭 시 포커스 설정
-    setSelectedLocation(location); // 마커 클릭 시 모달 열기
-    
-    // 일시적으로 포커스 설정 후 해제 (0.8초 후)
-    setTimeout(() => {
-      setFocusedLocation(null);
-    }, 800);
   };
 
   const handleDateClick = (date: number | null) => {
@@ -135,12 +158,6 @@ const Planning = () => {
             )}
           </div>
           <span className="sr-only">{isSidebarOpen ? '닫기' : '열기'}</span>
-          
-          {/* 툴팁 */}
-          <div className={`absolute left-full ml-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isSidebarOpen ? 'hidden' : 'block'}`}>
-            일정 보기
-            <div className="absolute left-0 top-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-45 w-2 h-2 bg-gray-900"></div>
-          </div>
         </button>
       </div>
 
@@ -191,39 +208,15 @@ const Planning = () => {
               <span className="font-medium">{startDate} ~ {endDate}</span>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {response && (
-              <div className="mt-4 p-6 bg-green-100 text-green-800 rounded-lg">
-                <p className="font-bold">Response:</p>
-                <pre>{JSON.stringify(response, null, 2)}</pre>
-              </div>
-            )}
-            {error && (
-              <div className="mt-4 p-6 bg-red-100 text-red-800 rounded-lg">
-                <p className="font-bold">Error:</p>
-                <pre>{error}</pre>
-              </div>
-            )}
-          </div>
         </div>
 
-        <div className="flex-grow flex flex-col">
-          {id == 0 && (
-            <button
-              onClick={handleSavePlan}
-              className="self-end mb-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-              </svg>
-              여행 일정 저장
-            </button>
-          )}
-          <div className="flex-grow flex flex-col md:flex-row rounded-2xl overflow-hidden shadow-xl border border-gray-100">
-            {/* 타임라인 */}
-            <section className="w-full md:w-1/3 pr-0 md:pr-6 bg-gray-50 p-4">
-              <div className="sticky top-4">
+        <div className="flex-grow flex flex-col md:flex-row rounded-2xl overflow-hidden shadow-xl border border-gray-100">
+          {/* 타임라인 */}
+          <section
+            className="w-full bg-gray-50 p-4 md:overflow-auto relative"
+            style={{ flex: `0 0 ${timelineWidth}%` }}
+          >
+            <div className="sticky top-4">
               <Timeline
                 onRouteClick={handleRouteClick}
                 onRouteMouseEnter={handleRouteMouseEnter}
@@ -232,30 +225,35 @@ const Planning = () => {
                 onLocationMouseLeave={handleLocationMouseLeave}
                 onLocationClick={handleLocationClick}
               />
-              </div>
-            </section>
-            {/* 지도 */}
-            <section className="w-full md:w-2/3 flex-grow bg-white">
-              <div className="w-full h-full p-4">
-                <MapComponent 
-                  travelPlanData={selectedDate !== null ? [dateLocations[selectedDate]] : dateLocations} 
-                  onMarkerClick={handleMarkerClick} 
-                  hoveredLocation={hoveredLocation}
-                />
-              </div>
-            </section>
+            </div>
+          </section>
+
+          {/* 리사이즈 핸들 */}
+          <div
+            className="hidden md:flex items-center justify-center w-4 z-10 bg-gradient-to-r from-gray-100 to-white hover:from-blue-50 hover:to-blue-100 transition-colors duration-300 relative"
+            onMouseDown={handleMouseDown}
+            style={{ cursor: 'col-resize' }}
+            ref={resizeRef}
+          >
+            <div className="absolute inset-0 flex flex-col items-center justify-center space-y-1 px-1.5">
+              <div className="w-0.5 h-6 bg-gray-400 rounded-full"></div>
+              <div className="w-0.5 h-6 bg-gray-400 rounded-full"></div>
+              <div className="w-0.5 h-6 bg-gray-400 rounded-full"></div>
+            </div>
           </div>
+
+          {/* 지도 */}
+          <section className="w-full flex-grow bg-white">
+            <div className="w-full h-full p-4">
+              <MapComponent
+                travelPlanData={selectedDate !== null ? [dateLocations[selectedDate]] : dateLocations}
+                onMarkerClick={handleMarkerClick}
+                hoveredLocation={hoveredLocation}
+              />
+            </div>
+          </section>
         </div>
       </section>
-
-      {selectedLocation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 backdrop-blur-sm flex items-center justify-center">
-          <TravelModal
-            location={selectedLocation}
-            onClose={() => setSelectedLocation(null)}
-          />
-        </div>
-      )}
     </main>
   );
 };
