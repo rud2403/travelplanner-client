@@ -41,7 +41,7 @@ const Planning = () => {
       setDateLocations(travelPlanData); // DateLocations 설정
       console.log('id: ', id);
     }
-  }, [destination, startDate, endDate, router, setDateLocations]);
+  }, [destination, startDate, endDate, router, setDateLocations, id]);
 
   const handleRouteClick = (from: string, to: string) => {
     const fromLocation = dateLocations.flatMap(date => date.locations).find(loc => loc.name === from);

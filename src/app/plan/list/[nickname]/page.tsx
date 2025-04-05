@@ -137,7 +137,7 @@ const UserPlanPage = () => {
         } else {
             console.error('nicknameParam이 없습니다!');
         }
-    }, [nicknameParam, currentPage, pageSize]);
+    }, [nicknameParam, currentPage, pageSize, fetchTrips]);
 
     const handleTripSelect = async (tripId: number) => {
         try {

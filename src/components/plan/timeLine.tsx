@@ -85,7 +85,7 @@ const TimeLine: React.FC<TimelineProps> = ({
                       </svg>
                       <span>{location.startTime} ~ {location.endTime}</span>
                     </div>
-                    <p className="text-sm text-gray-700 mb-2 italic">"{location.description}"</p>
+                    <p className="text-sm text-gray-700 mb-2 italic">&ldquo;{location.description}&rdquo;</p>
                     <div className="inline-block px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
                       {typeToText(location.type)}
                     </div>

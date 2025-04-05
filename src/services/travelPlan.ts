@@ -160,7 +160,7 @@ export const getPagedTripsByNickname = async (nickname: string, page: number, si
   }
 };
 
-export default { 
+const travelPlanService = { 
     saveTravelPlanAPI, 
     callTravelPlanAPI, 
     getTravelPlanByIdAPI, 
@@ -168,3 +168,5 @@ export default {
     deleteTripAPI,
     getPagedTripsByNickname
 };
+
+export default travelPlanService;
