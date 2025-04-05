@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { getTravelPlanByIdAPI, updateTripDescriptionAPI, deleteTripAPI, getPagedTripsByNickname } from '@/services/travelPlan';
 import { travelPlanData } from '@/data/travelPlanData';
 import { useTravelStore } from '@/store/useTravelStore';
@@ -44,42 +44,10 @@ const UserPlanPage = () => {
         setEndDate,
     } = useTravelStore();
 
-    // 직접 API 응답 확인
-    useEffect(() => {
-        const checkAPI = async () => {
-            if (!nicknameParam) return;
-            try {
-                // 직접 fetch 요청 보내기
-                const origResponse = await fetch(`/api/user/trips?nickname=${nicknameParam}`);
-                const jsonData = await origResponse.json();
-                console.log('원래 API 호출 응답:', jsonData);
-                
-                if (jsonData.data && Array.isArray(jsonData.data)) {
-                    console.log('가져온 여행 데이터 개수:', jsonData.data.length);
-                    
-                    // 응답 제대로 처리
-                    if (jsonData.status === 200) {
-                        setTripPage({
-                            content: jsonData.data,
-                            pageNumber: 0,
-                            pageSize: jsonData.data.length,
-                            totalPages: 1,
-                            totalElements: jsonData.data.length,
-                            first: true,
-                            last: true
-                        });
-                        setLoading(false);
-                    }
-                }
-            } catch (err) {
-                console.error('원래 API 호출 오류:', err);
-            }
-        };
-        
-        checkAPI();
-    }, [nicknameParam]);
 
-    const fetchTrips = async (page: number = 0) => {
+
+    // API 호출 함수를 useCallback으로 메모이제이션
+    const fetchTrips = useCallback(async (page: number = 0) => {
         if (!nicknameParam) return;
         
         setLoading(true);
@@ -128,7 +96,7 @@ const UserPlanPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [nicknameParam, pageSize]);
 
     useEffect(() => {
         console.log('URL 파라미터 nicknameParam:', nicknameParam);
