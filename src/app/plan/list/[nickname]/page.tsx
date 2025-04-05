@@ -13,6 +13,7 @@ import EmptyTripsDisplay from '@/components/travel/EmptyTripsDisplay';
 import TripCard from '@/components/travel/TripCard';
 import Pagination from '@/components/travel/Pagination';
 import EditDescriptionModal from '@/components/travel/EditDescriptionModal';
+import ErrorModal from '@/components/common/ErrorModal';
 
 const UserPlanPage = () => {
     const params = useParams();
@@ -35,6 +36,7 @@ const UserPlanPage = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingTripId, setEditingTripId] = useState<number | null>(null);
     const [newDescription, setNewDescription] = useState<string>('');
+    const [isTripLoadErrorModalOpen, setIsTripLoadErrorModalOpen] = useState(false);
 
     const {
         setId,
@@ -43,8 +45,6 @@ const UserPlanPage = () => {
         setStartDate,
         setEndDate,
     } = useTravelStore();
-
-
 
     // API 호출 함수를 useCallback으로 메모이제이션
     const fetchTrips = useCallback(async (page: number = 0) => {
@@ -127,9 +127,11 @@ const UserPlanPage = () => {
                 router.push('/plan');
             } else {
                 console.error("여행 정보 조회 실패:", response.message);
+                setIsTripLoadErrorModalOpen(true);
             }
         } catch (error) {
             console.error('여행 상세 조회 실패:', error);
+            setIsTripLoadErrorModalOpen(true);
         } finally {
             setIsLoading(false);
         }
@@ -264,6 +266,15 @@ const UserPlanPage = () => {
 
             {/* 로딩 오버레이 */}
             <LoadingOverlay isVisible={isLoading} />
+
+            {/* 여행 로드 에러 모달 */}
+            <ErrorModal 
+                isOpen={isTripLoadErrorModalOpen} 
+                onClose={() => {
+                    setIsTripLoadErrorModalOpen(false);
+                }}
+                message="여행 정보를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+            />
 
             {/* 설명 수정 모달 */}
             <EditDescriptionModal

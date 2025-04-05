@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { GoogleMap, Marker, Polyline, useLoadScript, InfoWindow } from '@react-google-maps/api';
 import { useTravelStore } from '@/store/useTravelStore';
 import { TravelLocation, TravelPlan } from '@/data/travelPlanData';
@@ -25,6 +26,7 @@ interface MapComponentProps {
 }
 
 const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerClick, hoveredLocation }) => {
+  const router = useRouter();
   const mapRef = useRef<google.maps.Map | null>(null);
   const [activeLocation, setActiveLocation] = useState<TravelLocation | null>(null);
   const focusedLocation = useTravelStore((state) => state.focusedLocation);
@@ -34,6 +36,13 @@ const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerCli
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
   });
+
+  // 데이터 유효성 검사
+  useEffect(() => {
+    if ((!travelPlanData || travelPlanData.length === 0)) {
+      router.push('/');
+    }
+  }, [travelPlanData, router]);
 
   useEffect(() => {
     if (focusedLocation && mapRef.current) {
@@ -100,7 +109,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerCli
 
   const handleMapClick = (e: google.maps.MapMouseEvent) => {
     // 지도의 다른 영역 클릭시 인포윈도우 닫기
-    if (e.placeId === undefined) { // 마커가 아닌 영역 클릭
+    if (!e.latLng) { // 마커가 아닌 영역 클릭
       setActiveLocation(null);
     }
   };
@@ -121,7 +130,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerCli
         onClick={handleMapClick}
       >
         {travelPlanData.map((dateLocation, dateIndex) => {
-          if (!dateLocation || !dateLocation.locations) {
+          if (!dateLocation || !dateLocation.locations || !dateLocation.routes) {
             return null;
           }
 
@@ -129,7 +138,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerCli
           return (
             <React.Fragment key={dateLocation.date}>
               {/* 여행 경로 라인 먼저 렌더링 */}
-              {dateLocation.routes.map((route, index) => {
+              {dateLocation.routes && dateLocation.routes.length > 0 && dateLocation.routes.map((route, index) => {
                 const fromLocation = dateLocation.locations.find(loc => loc.name === route.fromLocation);
                 const toLocation = dateLocation.locations.find(loc => loc.name === route.toLocation);
 

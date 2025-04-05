@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { useTravelStore } from '@/store/useTravelStore';
 import { TravelLocation } from '@/data/travelPlanData';
 
@@ -19,9 +20,16 @@ const TimeLine: React.FC<TimelineProps> = ({
   onLocationMouseLeave,
   onLocationClick,
 }) => {
+  const router = useRouter();
   const dateLocations = useTravelStore((state) => state.dateLocations);
   const selectedDate = useTravelStore((state) => state.selectedDate);
   const colors = useTravelStore((state) => state.colors);
+
+  // 데이터 유효성 검사
+  if (!dateLocations || dateLocations.length === 0) {
+    router.push('/');
+    return null;
+  }
 
   const methodToText = (method: number) => {
     switch (method) {
@@ -91,7 +99,7 @@ const TimeLine: React.FC<TimelineProps> = ({
                     </div>
                   </div>
                 </li>
-                {dateLocation.routes[locIndex] && (
+                {(dateLocation.routes && dateLocation.routes[locIndex]) ? (
                   <li className="flex items-center space-x-2 pl-16 pb-4">
                     <div className="border-l-2 border-dashed h-10 -mt-2 ml-6 border-gray-300"></div>
                     <div
@@ -115,7 +123,7 @@ const TimeLine: React.FC<TimelineProps> = ({
                       <span className="ml-2 text-xs text-blue-500">({dateLocation.routes[locIndex].time})</span>
                     </div>
                   </li>
-                )}
+                ) : null}
               </React.Fragment>
             ))}
           </ul>
