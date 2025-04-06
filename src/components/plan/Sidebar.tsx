@@ -2,12 +2,12 @@
 
 import React from 'react';
 import DateButton from '../common/DateButton';
-import { TravelPlan } from '@/data/travelPlanData';
+import travelPlanData from '@/data/travelPlanData';
 
 interface SidebarProps {
   isOpen: boolean;
   selectedDate: number | null;
-  dateLocations: TravelPlan[];
+  dateLocations: typeof travelPlanData;
   onDateClick: (date: number | null) => void;
 }
 
