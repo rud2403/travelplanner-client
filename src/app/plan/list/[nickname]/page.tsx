@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import { getTravelPlanByIdAPI, updateTripDescriptionAPI, deleteTripAPI, getPagedTripsByNickname } from '@/services/travelPlan';
-import { travelPlanData } from '@/data/travelPlanData';
+import { travelPlanData, convertRouteToTravelRoute } from '@/data/travelPlanData';
 import { useTravelStore } from '@/store/useTravelStore';
 import { Trip } from '@/types/trip';
 import { TripPageData } from '@/types/tripPage';
@@ -121,8 +121,23 @@ const UserPlanPage = () => {
                 setStartDate(tripData.startDate);
                 setEndDate(tripData.endDate);
 
+                // 타입 호환을 위해 데이터 변환
                 travelPlanData.length = 0;
-                travelPlanData.push(...tripData.dates);
+                
+                // 데이터가 있는 경우 경로 변환
+                const processedDates = tripData.dates.map(date => ({
+                    ...date,
+                    routes: date.routes ? date.routes.map(route => {
+                        // method가 있는 원래 형식의 경우
+                        if(route.method) {
+                            return convertRouteToTravelRoute(route);
+                        }
+                        // transportationType이 있는 새 형식의 경우
+                        return route;
+                    }) : []
+                }));
+                
+                travelPlanData.push(...processedDates);
 
                 router.push('/plan');
             } else {

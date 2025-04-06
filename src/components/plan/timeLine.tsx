@@ -214,7 +214,7 @@ const RouteItem: React.FC<RouteItemProps> = ({
   onMouseEnter,
   onMouseLeave,
 }) => {
-  const methodType = route.transportationType as keyof typeof TRANSPORT_TYPE_MAP;
+  const methodType = (route.transportationType || route.method) as keyof typeof TRANSPORT_TYPE_MAP;
   
   return (
     <li className="flex items-center space-x-2 pl-16 pb-4">
@@ -226,7 +226,7 @@ const RouteItem: React.FC<RouteItemProps> = ({
         onMouseLeave={onMouseLeave}
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          {TRANSPORT_ICON_PATHS[methodType] || <path />}
+          {TRANSPORT_ICON_PATHS[methodType] || <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />}
         </svg>
         <span className="font-medium">{TRANSPORT_TYPE_MAP[methodType] || '이동'}</span>
         {route.time && <span className="ml-2 text-xs text-blue-500">({route.time})</span>}
