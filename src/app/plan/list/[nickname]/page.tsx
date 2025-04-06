@@ -125,9 +125,9 @@ const UserPlanPage = () => {
                 travelPlanData.length = 0;
                 
                 // 데이터가 있는 경우 경로 변환
-                const processedDates = tripData.dates.map(date => ({
+                const processedDates = tripData.dates.map((date: any) => ({
                     ...date,
-                    routes: date.routes ? date.routes.map(route => {
+                    routes: date.routes ? date.routes.map((route: any) => {
                         // method가 있는 원래 형식의 경우
                         if(route.method) {
                             return convertRouteToTravelRoute(route);
