@@ -16,7 +16,6 @@ import SidebarToggle from '@/components/common/SidebarToggle';
 import useResizable from '@/hooks/useResizable';
 import useTripHandlers from '@/hooks/useTripHandlers';
 
-// 데이터 가져오기
 import travelPlanData from '@/data/travelPlanData';
 
 const Planning = () => {

@@ -13,12 +13,13 @@ interface ApiResponse<T> {
 /**
  * 여행 수정 DTO
  */
-interface TripUpdateDTO {
+export interface TripUpdateDTO {
   tripName?: string;
   tripDescription?: string;
   country?: string;
   startDate?: string;
   endDate?: string;
+  description?: string; // 이것이 필요했었음
 }
 
 /**

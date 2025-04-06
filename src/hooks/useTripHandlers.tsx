@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTravelStore } from '@/store/useTravelStore';
-import { TravelLocation, TravelPlan } from '@/data/travelPlanData';
+import { TravelLocation, TravelPlan } from '@/types/travel';
 import { saveTravelPlanAPI } from '@/services/travelPlan';
 
 /**

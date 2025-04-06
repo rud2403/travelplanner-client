@@ -9,6 +9,7 @@ export interface TravelLocation {
   description?: string;
   startTime: string;
   endTime: string;
+  country?: string; // 원래 타입과 호환되도록 추가
 }
 
 /**
@@ -17,7 +18,9 @@ export interface TravelLocation {
 export interface TravelRoute {
   fromLocation: string;
   toLocation: string;
-  transportationType: number;
+  transportationType?: number; // 선택사항으로 변경
+  method?: number; // 기존 타입과 호환을 위해 추가
+  time?: string; // 기존 타입과 호환을 위해 추가
 }
 
 /**
