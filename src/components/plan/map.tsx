@@ -52,12 +52,12 @@ const MapComponent: React.FC<MapComponentProps> = ({ travelPlanData, onMarkerCli
     }
   }, [focusedLocation]);
 
-  // 호버 상태에 따른 인포윈도우 표시 (이제 자동으로 사라지지 않음)
-  useEffect(() => {
-    if (hoveredLocation) {
-      setActiveLocation(hoveredLocation);
-    }
-  }, [hoveredLocation]);
+  // 호버 상태에 따른 효과 관리 (마우스 오버시 팝업 표시하지 않음)
+  // useEffect(() => {
+  //   if (hoveredLocation) {
+  //     setActiveLocation(hoveredLocation);
+  //   }
+  // }, [hoveredLocation]);
 
   if (!isLoaded) {
     return <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-xl">

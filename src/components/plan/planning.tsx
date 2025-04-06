@@ -41,7 +41,12 @@ const Planning = () => {
       setDateLocations(travelPlanData); // DateLocations 설정
       console.log('id: ', id);
     }
-  }, [destination, startDate, endDate, router, setDateLocations, id]);
+    
+    // 페이지를 떠날 때 전체 일정으로 초기화 (언마운트 시)
+    return () => {
+      setSelectedDate(null);
+    };
+  }, [destination, startDate, endDate, router, setDateLocations, id, setSelectedDate]);
 
   // 마우스 드래그 이벤트 처리
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -95,7 +100,8 @@ const Planning = () => {
   };
 
   const handleLocationMouseEnter = (location: TravelLocation) => {
-    setHoveredLocation(location); // 마우스 오버 시 마커만 확대
+    // 마우스 오버 시 마커만 확대하고 팝업은 표시하지 않음
+    setHoveredLocation(location); 
   };
 
   const handleLocationMouseLeave = () => {
@@ -112,7 +118,8 @@ const Planning = () => {
 
   const handleDateClick = (date: number | null) => {
     setSelectedDate(date);
-    setIsSidebarOpen(false); // 사이드바를 닫음
+    // 사이드바 닫는 기능 제거
+    // setIsSidebarOpen(false);
   };
 
   const handleSavePlan = async () => {
@@ -170,7 +177,7 @@ const Planning = () => {
         <nav className="flex flex-col space-y-4">
           <button
             onClick={() => handleDateClick(null)}
-            className="flex items-center p-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+            className={`flex items-center p-3 ${selectedDate === null ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'bg-white text-blue-800 hover:bg-blue-50'} rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border ${selectedDate === null ? '' : 'border-blue-100'}`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -181,13 +188,13 @@ const Planning = () => {
             <button
               key={index}
               onClick={() => handleDateClick(index)}
-              className="flex items-center p-3 bg-white text-blue-800 rounded-lg shadow-md hover:shadow-lg hover:bg-blue-50 transition-all duration-300 border border-blue-100"
+              className={`flex items-center p-3 ${selectedDate === index ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'bg-white text-blue-800 hover:bg-blue-50'} rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border ${selectedDate === index ? '' : 'border-blue-100'}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 mr-2 ${selectedDate === index ? 'text-white' : 'text-blue-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <span className="font-medium">{index + 1}일차</span>
-              <span className="ml-auto text-xs text-gray-500">{dateLocation.date}</span>
+              <span className={`ml-auto text-xs ${selectedDate === index ? 'text-gray-200' : 'text-gray-500'}`}>{dateLocation.date}</span>
             </button>
           ))}
         </nav>
@@ -195,20 +202,41 @@ const Planning = () => {
 
       {/* 메인 */}
       <section className={`flex-grow bg-white p-8 flex flex-col text-gray-800 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <div className="w-full max-w-6xl mx-auto mb-8 text-center bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 shadow-lg">
-          <div className="mb-4">
-            <h2 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{destination}</h2>
-          </div>
-          <div className="mb-6">
-            <p className="text-lg text-gray-700 max-w-3xl mx-auto mb-2">{description}</p>
-            <div className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-blue-100 text-blue-800">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        <div className="w-full max-w-6xl mx-auto mb-6">
+          <div className="flex items-center justify-between bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+            <div className="flex items-center">
+              <div className="w-2 h-16 bg-blue-500 rounded-full mr-4"></div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-800">{destination}</h2>
+                <p className="text-sm text-gray-500 mt-1">{description}</p>
+              </div>
+            </div>
+            <div className="flex items-center text-gray-600 bg-gray-50 rounded-md px-3 py-2 border border-gray-200">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span className="font-medium">{startDate} ~ {endDate}</span>
+              <span className="text-sm">{startDate} ~ {endDate}</span>
             </div>
           </div>
         </div>
+        
+        {/* 저장 버튼 - 이미 저장된 여행의 경우(id가 있는 경우) 표시하지 않음 */}
+        {!id && (
+          <div className="w-full mx-auto mb-4 flex">
+            <div className="flex-1"></div> {/* 좌측 공간 - 타임라인 너비와 동일 */}
+            <div className="flex-[2] flex justify-end pr-1"> {/* 오른쪽 공간 - 맵 너비와 동일 */}
+              <button
+                onClick={handleSavePlan}
+                className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                여행 일정 저장
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="flex-grow flex flex-col md:flex-row rounded-2xl overflow-hidden shadow-xl border border-gray-100">
           {/* 타임라인 */}
