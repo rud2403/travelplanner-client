@@ -22,3 +22,23 @@ export const updateUserInfoAPI = async (email: string, nickname: string) => {
         throw error;
     }
 };
+
+export const logoutAPI = async () => {
+    try {
+        const response = await axios.post('/api/user/logout');
+        return response.data;
+    } catch (error) {
+        console.error('Error logging out:', error);
+        throw error;
+    }
+};
+
+export const refreshTokenAPI = async () => {
+    try {
+        const response = await axios.post('/api/user/token/refresh');
+        return response.data;
+    } catch (error) {
+        console.error('Error refreshing token:', error);
+        throw error;
+    }
+};

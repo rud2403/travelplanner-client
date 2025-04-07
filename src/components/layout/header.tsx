@@ -1,25 +1,53 @@
 'use client'
 
+import { logoutAPI } from '@/services/user';
 import Link from 'next/link';
 import useSessionStore from '@/store/useSessionStore';
 import { useRouter } from 'next/navigation';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { UserCircleIcon, MapIcon, ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline'; // Import icons
 
 export default function Header() {
-    const { isLoggedIn, userInfo, clearUserInfo } = useSessionStore(); // Get login status, user info, and the clear function
+    const { isLoggedIn, userInfo, clearUserInfo, checkTokenExpiration } = useSessionStore();
     const router = useRouter();
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const handleLogout = () => {
-        // Clear the user info in the store
-        clearUserInfo();
-        // Clear the JWT from localStorage
-        localStorage.removeItem('jwtToken');
-        // Redirect to the home page or login page after logout
-        router.push('/');
-    };
+    const handleLogout = useCallback(async () => {
+        try {
+            // 서버에 로그아웃 요청 (쿠키 만료)
+            await logoutAPI();
+            
+            // 상태 초기화
+            clearUserInfo();
+            
+            // 홈페이지로 이동
+            router.push('/');
+        } catch (error) {
+            console.error('Logout failed:', error);
+            
+            // 오류 발생해도 클라이언트 상태는 초기화
+            clearUserInfo();
+            router.push('/');
+        }
+    }, [clearUserInfo, router]);
+    
+    // 컴포넌트 마운트 시 토큰 유효성 확인
+    useEffect(() => {
+        // 로그인 상태일 때만 토큰 확인
+        const checkToken = async () => {
+            if (isLoggedIn) {
+                const isExpired = await checkTokenExpiration();
+                if (isExpired) {
+                    // 토큰이 만료되었다면 자동 로그아웃
+                    alert('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
+                    await handleLogout();
+                }
+            }
+        };
+        
+        checkToken();
+    }, [isLoggedIn, checkTokenExpiration, handleLogout]);
 
     const handleDropdownToggle = () => {
         setDropdownOpen(!dropdownOpen);

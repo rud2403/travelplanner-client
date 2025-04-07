@@ -4,6 +4,7 @@ import "./globals.css";
 import 'react-calendar/dist/Calendar.css';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
+import AuthProvider from '@/components/auth/AuthProvider';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,12 +23,14 @@ export default function RootLayout({
       <head>
       </head>
       <body className={inter.className}>
-        {/* Header */}
-        <Header />
-        {/* Body */}
-        {children}
-        {/* Footer */}
-        <Footer />
+        <AuthProvider>
+          {/* Header */}
+          <Header />
+          {/* Body */}
+          {children}
+          {/* Footer */}
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );

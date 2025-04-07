@@ -2,19 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { jwtDecode } from "jwt-decode";
 import useSessionStore from "@/store/useSessionStore";
 import { fetchData } from '@/services/user';
 import { Suspense } from 'react';
 
-type DecodedToken = {
-    sub: string;
+type UserResponse = {
     name: string;
     email: string;
-    picture: string;
+    profilePictureUrl: string; // 필드 이름 변경: picture -> profilePictureUrl
     nickname: string;
-    iat?: number;
-    exp?: number;
+    accessTokenExpiresAt: number;
+    refreshTokenExpiresAt: number;
 };
 
 const GoogleLoginContent = () => {
@@ -22,7 +20,7 @@ const GoogleLoginContent = () => {
     const searchParams = useSearchParams();
     const code = searchParams.get("code");
     const state = searchParams.get("state");
-    const { updateUserInfo, userInfo } = useSessionStore();
+    const { updateUserInfo, updateTokenExpiry } = useSessionStore();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -30,21 +28,21 @@ const GoogleLoginContent = () => {
         const postCodeToServer = async () => {
             try {
                 const data = await fetchData(code);
-                console.log("data : ", data);
+                console.log("Response data: ", data);
     
-                if (data) {
-                    localStorage.setItem('jwtToken', data.data);
-    
-                    const decodedToken: DecodedToken = jwtDecode<DecodedToken>(data.data);
-                    console.log("Decoded Token: ", decodedToken);
-    
+                if (data && data.data) {
+                    const userData: UserResponse = data.data;
+                    
+                    // 사용자 정보 업데이트
                     updateUserInfo({
-                        sub: decodedToken.sub,
-                        name: decodedToken.name,
-                        email: decodedToken.email,
-                        picture: decodedToken.picture,
-                        nickname: decodedToken.nickname
+                        name: userData.name,
+                        email: userData.email,
+                        picture: userData.profilePictureUrl, // 필드 이름 변경에 맞춰 수정
+                        nickname: userData.nickname
                     });
+                    
+                    // 토큰 만료 시간 업데이트
+                    updateTokenExpiry(userData.accessTokenExpiresAt);
                 }
     
                 if (state) {
@@ -64,7 +62,7 @@ const GoogleLoginContent = () => {
         } else {
             setLoading(false);
         }
-    }, [code, state, router, updateUserInfo]);
+    }, [code, state, router, updateUserInfo, updateTokenExpiry]);
 
     if (loading) {
         return (
