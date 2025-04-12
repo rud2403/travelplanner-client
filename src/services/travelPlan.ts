@@ -25,24 +25,35 @@ export interface TripUpdateDTO {
 /**
  * 여행 계획을 저장하는 API
  * @param travelPlan 저장할 여행 계획 데이터
- * @param jwtToken 사용자 인증 토큰
  * @returns 저장된 여행 정보
  */
-export const saveTravelPlanAPI = async (travelPlan: TravelPlanToSave, jwtToken: string | null) => {
+export const saveTravelPlanAPI = async (travelPlan: TravelPlanToSave) => {
   try {
+    console.log('여행 계획 저장 API 호출:', { travelPlan });
+    
+    // withCredentials: true로 설정하여 쿠키 기반 인증 사용
     const response = await axios.post<ApiResponse<any>>('/api/travelplan/save', travelPlan, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${jwtToken}`,
       },
+      withCredentials: true, // 쿠키 포함 요청
     });
+
+    console.log('API 응답:', response.data);
 
     if (response.data.status === 201) {
       return response.data.data || response.data;
     } else {
-      throw new Error(response.statusText);
+      throw new Error(response.data.message || response.statusText || '여행 계획 저장 오류');
     }
-  } catch (error) {
+  } catch (error: any) {
+    // 오류 상세 정보 로깅
+    if (error.response) {
+      console.error('서버 오류 응답:', {
+        status: error.response.status,
+        data: error.response.data
+      });
+    }
     console.error('여행 저장 실패:', error);
     throw error;
   }
@@ -97,20 +108,28 @@ export const getTravelPlanByIdAPI = async (travelId: number) => {
  * 여행 정보를 수정하는 API
  * @param tripId 여행 ID
  * @param updateData 수정할 정보
- * @param jwtToken 인증 토큰
  * @returns 수정된 여행 정보
  */
-export const updateTripDescriptionAPI = async (tripId: number, updateData: TripUpdateDTO, jwtToken: string | null) => {
+export const updateTripDescriptionAPI = async (tripId: number, updateData: TripUpdateDTO) => {
   try {
+    console.log(`여행 정보 수정 API 호출 (ID: ${tripId}):`, updateData);
+    
     const response = await axios.patch(`/api/travelplan/${tripId}`, updateData, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${jwtToken}`,
       },
+      withCredentials: true, // 쿠키 포함 요청
     });
 
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
+    // 오류 상세 정보 로깅
+    if (error.response) {
+      console.error(`여행 정보 수정 오류 응답 (ID: ${tripId}):`, {
+        status: error.response.status,
+        data: error.response.data
+      });
+    }
     console.error(`여행 정보 수정 실패 (ID: ${tripId})`, error);
     throw error;
   }
@@ -119,19 +138,25 @@ export const updateTripDescriptionAPI = async (tripId: number, updateData: TripU
 /**
  * 여행을 삭제하는 API
  * @param tripId 여행 ID
- * @param jwtToken
  * @returns 삭제 결과
  */
-export const deleteTripAPI = async (tripId: number, jwtToken: string | null) => {
+export const deleteTripAPI = async (tripId: number) => {
   try {
+    console.log(`여행 삭제 API 호출 (ID: ${tripId})`);
+    
     const response = await axios.delete(`/api/travelplan/${tripId}`, {
-      headers: {
-        'Authorization': `Bearer ${jwtToken}`,
-      },
+      withCredentials: true, // 쿠키 포함 요청
     });
 
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
+    // 오류 상세 정보 로깅
+    if (error.response) {
+      console.error(`여행 삭제 오류 응답 (ID: ${tripId}):`, {
+        status: error.response.status,
+        data: error.response.data
+      });
+    }
     console.error(`여행 삭제 실패 (ID: ${tripId})`, error);
     throw error;
   }

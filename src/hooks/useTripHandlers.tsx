@@ -15,7 +15,6 @@ function useTripHandlers() {
     id,
     destination,
     country,
-    description,
     startDate,
     endDate,
     dateLocations,
@@ -66,14 +65,31 @@ function useTripHandlers() {
       dates: dateLocations,
     };
 
-    const jwtToken = localStorage.getItem('jwtToken');
-
     try {
-      const result = await saveTravelPlanAPI(travelPlan, jwtToken);
+      // axios 인스턴스가 withCredentials: true로 설정되어 있어 쿠키가 자동으로 포함됨
+      const result = await saveTravelPlanAPI(travelPlan);
       console.log('여행 일정 저장 완료:', result);
       alert('여행 일정이 성공적으로 저장되었습니다!');
-    } catch (error) {
-      console.error('Error saving plan:', error);
+    } catch (error: any) {
+      console.error('여행 일정 저장 실패:', error);
+      
+      // 인증 관련 오류 처리
+      if (error.response && error.response.status === 401) {
+        alert('로그인이 필요하거나 세션이 만료되었습니다. 다시 로그인해주세요.');
+        window.location.href = '/auth/signin';
+        return;
+      }
+      
+      // 사용자를 찾을 수 없는 오류 처리
+      if (error.response && error.response.data && 
+          (error.response.data.message?.includes('user not found') || 
+           error.response.data.message?.includes('User not found'))) {
+        alert('사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
+        window.location.href = '/auth/signin';
+        return;
+      }
+      
+      // 기타 오류
       alert('여행 일정 저장에 실패했습니다. 다시 시도해 주세요.');
     }
   };

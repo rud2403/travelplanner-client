@@ -153,8 +153,16 @@ const UserPlanPage = () => {
                 console.error("여행 정보 조회 실패:", response.message);
                 setIsTripLoadErrorModalOpen(true);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('여행 상세 조회 실패:', error);
+            
+            // 인증 관련 오류 처리
+            if (error.response && error.response.status === 401) {
+                alert('로그인이 필요하거나 세션이 만료되었습니다. 다시 로그인해주세요.');
+                window.location.href = '/auth/signin';
+                return;
+            }
+            
             setIsTripLoadErrorModalOpen(true);
         } finally {
             setIsLoading(false);
@@ -167,14 +175,22 @@ const UserPlanPage = () => {
 
     const handleDeleteTrip = async (tripId: number) => {
         try {
-            const jwtToken = localStorage.getItem('jwtToken');
-            await deleteTripAPI(tripId, jwtToken);
+            // 쿠키 기반 인증을 사용하므로 토큰을 문자열로 전달할 필요가 없음
+            await deleteTripAPI(tripId);
 
             // 여행 삭제 후 해당 페이지를 다시 불러옴
             fetchTrips(currentPage);
             alert('여행이 삭제되었습니다.');
-        } catch (error) {
+        } catch (error: any) {
             console.error('여행 삭제 실패:', error);
+            
+            // 인증 관련 오류 처리
+            if (error.response && error.response.status === 401) {
+                alert('로그인이 필요하거나 세션이 만료되었습니다. 다시 로그인해주세요.');
+                window.location.href = '/auth/signin';
+                return;
+            }
+            
             alert('여행 삭제 중 오류가 발생했습니다.');
         } finally {
             setOpenMenuId(null);
@@ -196,10 +212,10 @@ const UserPlanPage = () => {
     const handleSaveDescription = async () => {
         if (editingTripId !== null) {
             try {
-                const jwtToken = localStorage.getItem('jwtToken');
                 const updateData = { description: newDescription };
 
-                await updateTripDescriptionAPI(editingTripId, updateData, jwtToken);
+                // 쿠키 기반 인증을 사용하므로 토큰을 문자열로 전달할 필요가 없음
+                await updateTripDescriptionAPI(editingTripId, updateData);
 
                 // 설명 업데이트 후 페이지 다시 불러옴
                 fetchTrips(currentPage);
@@ -207,8 +223,17 @@ const UserPlanPage = () => {
                 setEditingTripId(null);
 
                 alert('여행 설명이 업데이트되었습니다.');
-            } catch (error) {
+            } catch (error: any) {
                 console.error('설명 업데이트 실패:', error);
+                
+                // 인증 관련 오류 처리
+                if (error.response && error.response.status === 401) {
+                    alert('로그인이 필요하거나 세션이 만료되었습니다. 다시 로그인해주세요.');
+                    window.location.href = '/auth/signin';
+                    return;
+                }
+                
+                alert('여행 설명 업데이트 중 오류가 발생했습니다.');
             }
         }
     };
