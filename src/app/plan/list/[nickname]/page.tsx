@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import { getTravelPlanByIdAPI, updateTripDescriptionAPI, deleteTripAPI, getPagedTripsByNickname } from '@/services/travelPlan';
-import { travelPlanData, convertRouteToTravelRoute } from '@/data/travelPlanData';
+import { convertRouteToTravelRoute } from '@/data/travelPlanData';
 import { useTravelStore } from '@/store/useTravelStore';
 import { Trip } from '@/types/trip';
 import { TripPageData } from '@/types/tripPage';
@@ -44,6 +44,7 @@ const UserPlanPage = () => {
         setDescription,
         setStartDate,
         setEndDate,
+        setDateLocations,
     } = useTravelStore();
 
     // API 호출 함수를 useCallback으로 메모이제이션
@@ -110,21 +111,22 @@ const UserPlanPage = () => {
     const handleTripSelect = async (tripId: number) => {
         try {
             setIsLoading(true);
+            console.log(`여행 ID ${tripId} 정보 불러오는 중...`);
             const response = await getTravelPlanByIdAPI(tripId);
 
             if (response.status === 200) {
                 const tripData = response.data;
+                console.log('여행 정보 조회 성공:', tripData);
 
+                // 기본 정보 Zustand 스토어에 설정
                 setId(tripData.id);
                 setDestination(tripData.destination);
                 setDescription(tripData.description);
                 setStartDate(tripData.startDate);
                 setEndDate(tripData.endDate);
 
-                // 타입 호환을 위해 데이터 변환
-                travelPlanData.length = 0;
-                
                 // 데이터가 있는 경우 경로 변환
+                if (tripData.dates && Array.isArray(tripData.dates)) {
                 const processedDates = tripData.dates.map((date: any) => ({
                     ...date,
                     routes: date.routes ? date.routes.map((route: any) => {
@@ -137,9 +139,16 @@ const UserPlanPage = () => {
                     }) : []
                 }));
                 
-                travelPlanData.push(...processedDates);
+                    // Zustand 스토어에 직접 저장
+                    setDateLocations(processedDates);
+                    console.log('처리된 여행 일정 데이터 저장 완료, 페이지 이동 준비');
 
+                    // 데이터가 완전히 준비된 후 페이지 이동
                 router.push('/plan');
+            } else {
+                    console.error('여행 일정 데이터가 없습니다.');
+                    setIsTripLoadErrorModalOpen(true);
+                }
             } else {
                 console.error("여행 정보 조회 실패:", response.message);
                 setIsTripLoadErrorModalOpen(true);
@@ -288,7 +297,7 @@ const UserPlanPage = () => {
                 onClose={() => {
                     setIsTripLoadErrorModalOpen(false);
                 }}
-                message="여행 정보를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+                message="여행 정보를 불러오는 중 오류가 발생했습니다. 새로고침하거나 잠시 후 다시 시도해주세요."
             />
 
             {/* 설명 수정 모달 */}

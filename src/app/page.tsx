@@ -8,7 +8,7 @@ import LocationPickerModal from '@/containers/picker/locationPicker';
 import { callTravelPlanAPI } from '@/services/travelPlan';
 import { useTravelStore } from '@/store/useTravelStore';
 import 'react-calendar/dist/Calendar.css';
-import { travelPlanData } from '@/data/travelPlanData';
+import { EMPTY_TRAVEL_PLAN } from '@/data/travelPlanData';
 import { countryCodes } from '@/data/travelLocations';
 
 import styles from './page.module.css'; // CSS 모듈 가져오기
@@ -26,6 +26,7 @@ export default function Home() {
     setCountry,
     setStartDate,
     setEndDate,
+    setDateLocations,
     // setNumberOfPeople,
     // setBudget,
   } = useTravelStore();
@@ -62,145 +63,35 @@ export default function Home() {
   // 모달 마지막 단계에서 호출되는 함수
   const handleFinish = async () => {
     setIsLoading(true); // 로딩 상태 시작
+    
+    // Zustand 스토어에 여행 기본 정보 저장
     setId(0); // 여행일정 생성임을 나타내기위해 id를 0으로 설정
     setDestination(destination);
     setCountry(countryCodes[destination.split(' - ')[0]]); // 국가 코드 설정
-    setStartDate(dateRange ? dateRange[0] : '');
-    setEndDate(dateRange ? dateRange[1] : '');
+    
+    const startDateValue = dateRange ? dateRange[0] : '';
+    const endDateValue = dateRange ? dateRange[1] : '';
+    
+    setStartDate(startDateValue);
+    setEndDate(endDateValue);
     
     resetLocalState(); // Reset local state
 
-    const startDate = dateRange ? dateRange[0] : '';
-    const endDate = dateRange ? dateRange[1] : '';
-
     try {
-      const response = await callTravelPlanAPI(destination, startDate, endDate);
-
-      // API 호출 대신 로컬 데이터 사용
-      // const response = [
-      //   {
-      //     "tripIndex": 0,
-      //     "date": "2025-02-18",
-      //     "routes": [
-      //       {
-      //         "method": 3,
-      //         "fromLocation": "관서 지구",
-      //         "time": "도보로 10분",
-      //         "toLocation": "도톤보리"
-      //       },
-      //       {
-      //         "method": 3,
-      //         "fromLocation": "도톤보리",
-      //         "time": "도보로 15분",
-      //         "toLocation": "신사이바시 스시"
-      //       },
-      //       {
-      //         "method": 3,
-      //         "fromLocation": "신사이바시 스시",
-      //         "time": "도보로 5분",
-      //         "toLocation": "호텔 라 팤"
-      //       }
-      //     ],
-      //     "locations": [
-      //       {
-      //         "lng": 135.5021651,
-      //         "name": "관서 지구",
-      //         "description": "오사카를 대표하는 번화가로 쇼핑 및 음식을 즐기기에 좋은 장소입니다.",
-      //         "startTime": "09:00",
-      //         "endTime": "12:00",
-      //         "type": 1,
-      //         "lat": 34.6937378
-      //       },
-      //       {
-      //         "lng": 135.5013897,
-      //         "name": "도톤보리",
-      //         "description": "유명한 관광 명소로 식당과 상점이 밀집해있는 지역입니다.",
-      //         "startTime": "13:00",
-      //         "endTime": "16:00",
-      //         "type": 1,
-      //         "lat": 34.6937259
-      //       },
-      //       {
-      //         "lng": 135.495558,
-      //         "name": "신사이바시 스시",
-      //         "description": "지역 주민들이 자주 찾는 맛집으로 신선한 회를 맛볼 수 있습니다.",
-      //         "startTime": "18:00",
-      //         "endTime": "19:30",
-      //         "type": 2,
-      //         "lat": 34.693837
-      //       },
-      //       {
-      //         "lng": 135.4959928,
-      //         "name": "호텔 라 팤",
-      //         "description": "오사카에서 휴식을 취할 수 있는 편안한 숙박 시설입니다.",
-      //         "startTime": "20:00",
-      //         "endTime": "",
-      //         "type": 3,
-      //         "lat": 34.6949104
-      //       }
-      //     ]
-      //   },
-      //   {
-      //     "tripIndex": 1,
-      //     "date": "2025-02-19",
-      //     "routes": [
-      //       {
-      //         "method": 2,
-      //         "fromLocation": "도톤보리",
-      //         "time": "지하철로 15분",
-      //         "toLocation": "오사카 성"
-      //       },
-      //       {
-      //         "method": 3,
-      //         "fromLocation": "오사카 성",
-      //         "time": "도보로 10분",
-      //         "toLocation": "마루야마 파크"
-      //       }
-      //     ],
-      //     "locations": [
-      //       {
-      //         "lng": 135.5013897,
-      //         "name": "도톤보리",
-      //         "description": "유명한 관광 명소로 식당과 상점이 밀집해있는 지역입니다.",
-      //         "startTime": "09:00",
-      //         "endTime": "12:00",
-      //         "type": 1,
-      //         "lat": 34.6937259
-      //       },
-      //       {
-      //         "lng": 135.525548,
-      //         "name": "오사카 성",
-      //         "description": "일본 역사와 문화를 경험할 수 있는 오사카의 랜드마크입니다.",
-      //         "startTime": "13:00",
-      //         "endTime": "16:00",
-      //         "type": 1,
-      //         "lat": 34.687315
-      //       },
-      //       {
-      //         "lng": 135.527655,
-      //         "name": "마루야마 파크",
-      //         "description": "자연 경관이 아름다운 공원으로 산책하기에 좋은 장소입니다.",
-      //         "startTime": "16:30",
-      //         "endTime": "18:00",
-      //         "type": 1,
-      //         "lat": 34.685295
-      //       }
-      //     ]
-      //   }
-      // ]
-
+      // API 호출하여 여행 계획 데이터 가져오기
+      const response = await callTravelPlanAPI(destination, startDateValue, endDateValue);
       console.log('Response from API: ', response);
-
-      // travelPlanData 배열을 비우고 새 데이터를 추가
-      travelPlanData.length = 0; // 기존 배열 비우기
       
-      // travelPlanData.push(...parsedData); // 새 데이터를 배열에 추가
-      travelPlanData.push(...response); // 새 데이터를 배열에 추가
-
-      console.log('Parsed travel plan data: ', travelPlanData);
-      router.push('/plan'); // 페이지 이동
+      // Zustand 스토어에 여행 계획 데이터 저장
+      setDateLocations(response);
+      
+      console.log('여행 계획 데이터가 스토어에 저장되었습니다.');
+      
+      // 여행 계획 페이지로 이동
+      router.push('/plan');
     } catch (error) {
-      console.error('JSON 파싱 실패: ', error);
+      console.error('여행 계획 생성 실패: ', error);
+      alert('여행 계획을 생성하는 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
       setIsLoading(false); // 로딩 상태 종료
     }

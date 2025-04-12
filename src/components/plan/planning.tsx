@@ -16,7 +16,7 @@ import SidebarToggle from '@/components/common/SidebarToggle';
 import useResizable from '@/hooks/useResizable';
 import useTripHandlers from '@/hooks/useTripHandlers';
 
-import travelPlanData from '@/data/travelPlanData';
+// import travelPlanData from '@/data/travelPlanData';
 
 const Planning = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
@@ -63,17 +63,29 @@ const Planning = () => {
 
   // 초기 데이터 로드 및 페이지 이탈 시 정리
   useEffect(() => {
-    if (!destination || !startDate || !endDate) {
-      router.push('/'); // 데이터가 없으면 홈으로 리다이렉트
-    } else {
-      setDateLocations(travelPlanData); // DateLocations 설정
+    // 페이지 접근 시 데이터 유효성 검사
+    if (dateLocations.length === 0 && (!destination || !startDate || !endDate)) {
+      console.log('여행 계획 데이터가 없습니다. 홈으로 이동합니다.');
+      router.push('/');
     }
     
     // 페이지를 떠날 때 전체 일정으로 초기화 (언마운트 시)
     return () => {
       setSelectedDate(null);
     };
-  }, [destination, startDate, endDate, router, setDateLocations, setSelectedDate]);
+  }, [destination, startDate, endDate, dateLocations, router, setSelectedDate]);
+  
+  // 데이터 유효성 추가 검사 (렌더링 중에 예외 발생 방지)
+  if (dateLocations.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="text-center p-8 bg-white rounded-lg shadow-lg">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">여행 계획 로딩 중...</h2>
+          <p className="text-gray-600">잠시만 기다려주세요.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="flex min-h-screen bg-gray-50">

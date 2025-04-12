@@ -19,7 +19,6 @@ export function convertRouteToTravelRoute(route: ModifiedRoute): TravelRoute {
     };
 }
 
-// open api를 통해 받아온 데이터를 저장하는 변수
-export let travelPlanData: TravelPlan[] = [];
+export const EMPTY_TRAVEL_PLAN: TravelPlan[] = [];
 
-export default travelPlanData;
+export default EMPTY_TRAVEL_PLAN;

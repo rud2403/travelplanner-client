@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTravelStore } from '@/store/useTravelStore';
 import { TravelLocation, LocationHandlerProps, RouteHandlerProps } from '@/types/travel';
@@ -45,10 +45,13 @@ const TimeLine: React.FC<TimelineProps> = ({
   const selectedDate = useTravelStore((state) => state.selectedDate);
   const colors = useTravelStore((state) => state.colors);
 
-  // 데이터 유효성 검사
+  // 데이터가 없는 경우 로딩 상태 표시
   if (!dateLocations || dateLocations.length === 0) {
-    router.push('/');
-    return null;
+    return (
+      <div className="flex items-center justify-center p-8 bg-white rounded-lg shadow-md">
+        <p className="text-gray-600 text-lg font-medium">일정 데이터를 불러오는 중입니다...</p>
+      </div>
+    );
   }
 
   // 선택한 날짜가 있으면 해당 날짜만, 없으면 전체 날짜 표시
