@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTravelStore } from '@/store/useTravelStore';
 import { TravelLocation, TravelPlan } from '@/types/travel';
-import { saveTravelPlanAPI } from '@/services/travelPlan';
+import { saveTravelPlanAPI, exportTravelPlanToExcel } from '@/services/travelPlan';
 
 /**
  * 여행 일정 관련 이벤트 핸들러를 관리하는 커스텀 훅
@@ -56,14 +56,20 @@ function useTripHandlers() {
     setFocusedLocation(location); // 마커 클릭 시 포커스 설정
   };
 
-  const handleSavePlan = async () => {
-    const travelPlan = {
+  // 여행 계획 데이터 구성
+  const getTravelPlanData = () => {
+    return {
       destination,
       country,
       startDate,
       endDate,
       dates: dateLocations,
     };
+  };
+
+  // 여행 계획 저장 핸들러
+  const handleSavePlan = async () => {
+    const travelPlan = getTravelPlanData();
 
     try {
       // axios 인스턴스가 withCredentials: true로 설정되어 있어 쿠키가 자동으로 포함됨
@@ -94,6 +100,34 @@ function useTripHandlers() {
     }
   };
 
+  // 엑셀 내보내기 핸들러
+  const handleExportExcel = async () => {
+    try {
+      // 저장된 여행인지 확인
+      if (id) {
+        // 이미 저장된 여행 ID로 내보내기
+        await exportTravelPlanToExcel(id);
+      } else {
+        // 저장되지 않은 여행은 데이터를 직접 전송
+        const travelPlan = getTravelPlanData();
+        await exportTravelPlanToExcel(undefined, travelPlan);
+      }
+      
+      console.log('엑셀 내보내기 성공');
+    } catch (error: any) {
+      console.error('엑셀 내보내기 실패:', error);
+      
+      // 인증 관련 오류 처리
+      if (error.response && error.response.status === 401) {
+        alert('로그인이 필요하거나 세션이 만료되었습니다. 다시 로그인해주세요.');
+        window.location.href = '/auth/signin';
+        return;
+      }
+      
+      alert('엑셀 내보내기에 실패했습니다. 다시 시도해 주세요.');
+    }
+  };
+
   return {
     id,
     hoveredLocation,
@@ -104,7 +138,8 @@ function useTripHandlers() {
     handleLocationMouseLeave,
     handleLocationClick,
     handleMarkerClick,
-    handleSavePlan
+    handleSavePlan,
+    handleExportExcel
   };
 }
 
