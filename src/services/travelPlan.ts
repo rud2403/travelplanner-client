@@ -193,6 +193,64 @@ export const getPagedTripsByNickname = async (nickname: string, page: number, si
 };
 
 /**
+ * 여행 일정을 엑셀로 내보내는 API
+ * @param tripId 여행 ID (선택적 - 주어진 경우 해당 ID의 저장된 여행 일정을 내보냄)
+ * @param travelPlan 여행 계획 데이터 (선택적 - 저장되지 않은 여행 일정을 내보낼 때 사용)
+ * @returns 엑셀 파일 블롭
+ */
+export const exportTravelPlanToExcel = async (tripId?: number, travelPlan?: any) => {
+  try {
+    let response;
+    
+    if (tripId) {
+      // 저장된 여행 일정을 내보낼 때
+      response = await axios.get(`/api/travelplan/${tripId}/excel`, {
+        responseType: 'blob', // 응답을 blob으로 받음
+        withCredentials: true, // 쿠키 포함 요청
+      });
+    } else if (travelPlan) {
+      // 저장되지 않은 여행 일정을 내보낼 때
+      response = await axios.post('/api/travelplan/excel', travelPlan, {
+        responseType: 'blob', // 응답을 blob으로 받음
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true, // 쿠키 포함 요청
+      });
+    } else {
+      throw new Error('여행 ID 또는 여행 계획 데이터가 필요합니다.');
+    }
+
+    // 파일 다운로드 로직
+    const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const fileName = `여행계획_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    
+    // 다운로드 링크 생성 및 클릭
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    
+    // 정리
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+    return true;
+  } catch (error: any) {
+    console.error('엑셀 내보내기 실패:', error);
+    if (error.response) {
+      console.error('서버 오류 응답:', {
+        status: error.response.status,
+        data: error.response.data
+      });
+    }
+    throw error;
+  }
+};
+
+/**
  * 여행 계획 관련 API 서비스
  */
 const travelPlanService = { 
@@ -201,7 +259,8 @@ const travelPlanService = {
   getTravelPlanByIdAPI, 
   updateTripDescriptionAPI, 
   deleteTripAPI,
-  getPagedTripsByNickname
+  getPagedTripsByNickname,
+  exportTravelPlanToExcel
 };
 
 export default travelPlanService;

@@ -48,7 +48,8 @@ const Planning = () => {
     handleLocationMouseLeave,
     handleLocationClick,
     handleMarkerClick,
-    handleSavePlan
+    handleSavePlan,
+    handleExportExcel
   } = useTripHandlers();
 
   // 날짜 선택 핸들러
@@ -110,8 +111,13 @@ const Planning = () => {
           endDate={endDate}
         />
         
-        {/* 저장 버튼 - 새 여행인 경우에만 표시 */}
-        {!id && <SaveButton onSave={handleSavePlan} timelineWidth={timelineWidth} />}
+        {/* 저장 버튼과 엑셀 내보내기 버튼 - id가 있으면 저장된 여행이므로 저장버튼은 표시하지 않음 */}
+        <SaveButton 
+          onSave={!id ? handleSavePlan : undefined} 
+          onExportExcel={handleExportExcel} 
+          timelineWidth={timelineWidth} 
+          showSaveButton={!id} 
+        />
 
         <div className="flex-grow flex flex-col md:flex-row rounded-2xl overflow-hidden shadow-xl border border-gray-100">
           {/* 타임라인 */}
