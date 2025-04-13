@@ -10,6 +10,7 @@ export interface TravelLocation {
   startTime: string;
   endTime: string;
   country?: string; // 원래 타입과 호환되도록 추가
+  isModified?: boolean; // 위치 수정 여부
 }
 
 /**

@@ -23,6 +23,42 @@ export interface TripUpdateDTO {
 }
 
 /**
+ * 여행 계획 전체를 업데이트하는 API
+ * @param travelPlan 업데이트할 여행 계획 데이터 (ID 포함)
+ * @returns 업데이트된 여행 정보
+ */
+export const updateTravelPlanAPI = async (travelPlan: any) => {
+  try {
+    console.log('여행 계획 업데이트 API 호출:', { travelPlan });
+    
+    const response = await axios.put<ApiResponse<any>>(`/api/travelplan/${travelPlan.id}`, travelPlan, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      withCredentials: true, // 쿠키 포함 요청
+    });
+
+    console.log('API 응답:', response.data);
+
+    if (response.data.status === 200) {
+      return response.data.data || response.data;
+    } else {
+      throw new Error(response.data.message || response.statusText || '여행 계획 업데이트 오류');
+    }
+  } catch (error: any) {
+    // 오류 상세 정보 로깅
+    if (error.response) {
+      console.error('서버 오류 응답:', {
+        status: error.response.status,
+        data: error.response.data
+      });
+    }
+    console.error('여행 업데이트 실패:', error);
+    throw error;
+  }
+};
+
+/**
  * 여행 계획을 저장하는 API
  * @param travelPlan 저장할 여행 계획 데이터
  * @returns 저장된 여행 정보
@@ -258,6 +294,7 @@ const travelPlanService = {
   callTravelPlanAPI, 
   getTravelPlanByIdAPI, 
   updateTripDescriptionAPI, 
+  updateTravelPlanAPI,
   deleteTripAPI,
   getPagedTripsByNickname,
   exportTravelPlanToExcel

@@ -48,6 +48,8 @@ interface MapComponentProps {
   travelPlanData: TravelPlan[];
   onMarkerClick: (location: TravelLocation) => void;
   hoveredLocation: TravelLocation | null;
+  isEditMode?: boolean;
+  onMarkerChange?: () => void;
 }
 
 /**
@@ -56,7 +58,9 @@ interface MapComponentProps {
 const MapComponent: React.FC<MapComponentProps> = ({ 
   travelPlanData, 
   onMarkerClick, 
-  hoveredLocation 
+  hoveredLocation,
+  isEditMode = false,
+  onMarkerChange
 }) => {
   const router = useRouter();
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -67,6 +71,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const focusedRoute = useTravelStore((state) => state.focusedRoute);
   const selectedDate = useTravelStore((state) => state.selectedDate);
   const colors = useTravelStore((state) => state.colors);
+  const setDateLocations = useTravelStore((state) => state.setDateLocations);
+  const dateLocations = useTravelStore((state) => state.dateLocations);
   
   // Google Maps API 로드
   const { isLoaded } = useLoadScript({
@@ -224,12 +230,47 @@ const MapComponent: React.FC<MapComponentProps> = ({
               {/* 마커 렌더링 */}
               {dateLocation.locations.map((location, index) => (
                 <Marker
-                  key={`${location.name}-${index}`}
-                  position={{ lat: location.lat, lng: location.lng }}
-                  icon={createCustomMarkerIcon(color, location, index)}
-                  label={createCustomLabel((index + 1).toString())}
-                  onClick={() => handleMarkerClick(location)}
-                  zIndex={activeLocation === location ? 1000 : 100}
+                key={`${location.name}-${index}`}
+                position={{ lat: location.lat, lng: location.lng }}
+                icon={createCustomMarkerIcon(color, location, index)}
+                label={createCustomLabel((index + 1).toString())}
+                onClick={() => handleMarkerClick(location)}
+                zIndex={activeLocation === location ? 1000 : 100}
+                  draggable={isEditMode}
+                  onDragEnd={(e) => {
+                    if (isEditMode && e.latLng) {
+                      // 위치 변경 처리
+                      const newLat = e.latLng.lat();
+                      const newLng = e.latLng.lng();
+                      
+                      // 데이터 복사 및 위치 업데이트
+                      const updatedDateLocations = [...dateLocations];
+                      const dayIndex = dateLocation.tripIndex;
+                      
+                      // 정확히 같은 위치의 마커를 찾기
+                      const locationIndex = updatedDateLocations[dayIndex].locations.findIndex(
+                        loc => loc === location // 동일한 객체 참조인지 확인
+                      );
+                      
+                      if (locationIndex !== -1) {
+                        // 변경된 위치 값 업데이트
+                        updatedDateLocations[dayIndex].locations[locationIndex] = {
+                          ...updatedDateLocations[dayIndex].locations[locationIndex],
+                          lat: newLat,
+                          lng: newLng,
+                          isModified: true // 수정되었음을 표시
+                        };
+                        
+                        // Zustand 스토어 업데이트
+                        setDateLocations(updatedDateLocations);
+                        
+                        // 변경 함수 호출
+                        if (onMarkerChange) {
+                          onMarkerChange();
+                        }
+                      }
+                    }
+                  }}
                 />
               ))}
             </React.Fragment>
@@ -266,12 +307,28 @@ const LocationInfoCard: React.FC<LocationInfoCardProps> = ({ location }) => {
   const bgColor = locationTypeStyles.backgroundColor[locationType] || '#F3F4F6';
   const textColor = locationTypeStyles.textColor[locationType] || '#374151';
   const label = locationTypeStyles.label[locationType] || '기타';
+  
+  // useRef를 사용하여 변경된 위치 정보를 추적
+  const prevLocationRef = useRef(location);
+  const [shouldUpdate, setShouldUpdate] = useState(false);
+  
+  // 위치 정보가 변경되었는지 확인
+  useEffect(() => {
+    // 현재 값과 이전 값이 다르면 업데이트 필요
+    prevLocationRef.current = location;
+    setShouldUpdate(!shouldUpdate); // 강제 렌더링을 위한 토글
+  }, [location]);
 
   return (
     <div className="p-4 max-w-xs bg-white rounded-lg shadow-inner">
       <div className="flex items-start mb-3">
         <div className="flex-1">
-          <h3 className="font-bold text-gray-800 text-lg leading-tight mb-1">{location.name}</h3>
+          <div className="flex items-center">
+            {location.isModified && (
+              <span className="mr-2 text-amber-500 font-bold text-sm">★</span>
+            )}
+            <h3 className="font-bold text-gray-800 text-lg leading-tight mb-1">{location.name}</h3>
+          </div>
           <div className="flex items-center text-xs font-medium text-gray-500">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
