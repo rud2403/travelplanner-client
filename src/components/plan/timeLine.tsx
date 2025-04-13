@@ -1,23 +1,23 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTravelStore } from '@/store/useTravelStore';
 import { TravelLocation, LocationHandlerProps, RouteHandlerProps } from '@/types/travel';
 
-// 여행 경로 유형을 텍스트로 변환
-const TRANSPORT_TYPE_MAP = {
-  1: '자동차',
-  2: '대중교통',
-  3: '도보',
-};
-
-// 장소 유형을 텍스트로 변환
+// 여행 유형 마핑
 const LOCATION_TYPE_MAP = {
   1: '관광지',
   2: '식당',
   3: '숙소',
   4: '쇼핑',
+};
+
+// 이동 방법 마핑
+const TRANSPORT_TYPE_MAP = {
+  1: '자동차',
+  2: '대중교통',
+  3: '도보',
 };
 
 // 아이콘 경로 맵핑
@@ -27,7 +27,11 @@ const TRANSPORT_ICON_PATHS = {
   3: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />,
 };
 
-interface TimelineProps extends LocationHandlerProps, RouteHandlerProps {}
+interface TimelineProps extends LocationHandlerProps, RouteHandlerProps {
+  isEditMode?: boolean;
+  onLocationContentChange?: (location: TravelLocation) => void;
+  onRouteChange?: (route: any, dayIndex: number, routeIndex: number) => void;
+}
 
 /**
  * 여행 일정 타임라인 컴포넌트
@@ -39,6 +43,9 @@ const TimeLine: React.FC<TimelineProps> = ({
   onLocationMouseEnter,
   onLocationMouseLeave,
   onLocationClick,
+  isEditMode = false,
+  onLocationContentChange,
+  onRouteChange
 }) => {
   const router = useRouter();
   const dateLocations = useTravelStore((state) => state.dateLocations);
@@ -70,7 +77,7 @@ const TimeLine: React.FC<TimelineProps> = ({
           scrollbar-width: none;  /* Firefox */
         }
       `}</style>
-      
+
       {displayLocations.map((dateLocation, dateIndex) => (
         <DayCard
           key={dateLocation.date}
@@ -83,6 +90,9 @@ const TimeLine: React.FC<TimelineProps> = ({
           onLocationMouseEnter={onLocationMouseEnter}
           onLocationMouseLeave={onLocationMouseLeave}
           onLocationClick={onLocationClick}
+          isEditMode={isEditMode}
+          onLocationContentChange={onLocationContentChange}
+          onRouteChange={onRouteChange}
         />
       ))}
     </div>
@@ -93,6 +103,9 @@ interface DayCardProps extends LocationHandlerProps, RouteHandlerProps {
   dateLocation: any;
   dayIndex: number;
   color: string;
+  isEditMode?: boolean;
+  onLocationContentChange?: (location: TravelLocation) => void;
+  onRouteChange?: (route: any, dayIndex: number, routeIndex: number) => void;
 }
 
 /**
@@ -108,6 +121,9 @@ const DayCard: React.FC<DayCardProps> = ({
   onLocationMouseEnter,
   onLocationMouseLeave,
   onLocationClick,
+  isEditMode = false,
+  onLocationContentChange,
+  onRouteChange
 }) => {
   return (
     <div className="bg-white p-6 rounded-xl shadow-xl min-w-[320px] border border-gray-100 hover:border-blue-200 transition-all duration-300">
@@ -117,7 +133,7 @@ const DayCard: React.FC<DayCardProps> = ({
         </h3>
         <p className="text-center text-gray-500 font-medium">{dateLocation.date}</p>
       </div>
-      
+
       <ul className="space-y-6">
         {dateLocation.locations.map((location: TravelLocation, locIndex: number) => (
           <React.Fragment key={locIndex}>
@@ -129,8 +145,10 @@ const DayCard: React.FC<DayCardProps> = ({
               onMouseEnter={() => onLocationMouseEnter(location)}
               onMouseLeave={onLocationMouseLeave}
               onClick={() => onLocationClick(location)}
+              isEditMode={isEditMode}
+              onContentChange={onLocationContentChange}
             />
-            
+
             {/* 이동 경로 항목 */}
             {(dateLocation.routes && dateLocation.routes[locIndex]) && (
               <RouteItem
@@ -138,6 +156,10 @@ const DayCard: React.FC<DayCardProps> = ({
                 onClick={() => onRouteClick(dateLocation.routes[locIndex].fromLocation, dateLocation.routes[locIndex].toLocation)}
                 onMouseEnter={() => onRouteMouseEnter(dateLocation.routes[locIndex].fromLocation, dateLocation.routes[locIndex].toLocation)}
                 onMouseLeave={onRouteMouseLeave}
+                isEditMode={isEditMode}
+                onRouteChange={onRouteChange}
+                dayIndex={dayIndex}
+                routeIndex={locIndex}
               />
             )}
           </React.Fragment>
@@ -154,6 +176,8 @@ interface LocationItemProps {
   onMouseEnter: () => void;
   onMouseLeave: () => void;
   onClick: () => void;
+  isEditMode?: boolean;
+  onContentChange?: (location: TravelLocation) => void;
 }
 
 /**
@@ -166,9 +190,43 @@ const LocationItem: React.FC<LocationItemProps> = ({
   onMouseEnter,
   onMouseLeave,
   onClick,
+  isEditMode = false,
+  onContentChange
 }) => {
   const locationType = location.type as keyof typeof LOCATION_TYPE_MAP;
-  
+  const [isEditing, setIsEditing] = useState(false);
+  const [description, setDescription] = useState(location.description || '');
+  const [locationName, setLocationName] = useState(location.name);
+  const [startTime, setStartTime] = useState(location.startTime);
+  const [endTime, setEndTime] = useState(location.endTime);
+  const [locType, setLocType] = useState(location.type);
+
+  const locationRef = useRef(location);
+
+  // 위치 정보가 변경되면 상태 업데이트
+  useEffect(() => {
+    // 오직 location이 변경되고 편집 중이 아닐 경우에만 업데이트
+    if (!isEditing) {
+      setLocationName(location.name);
+      setStartTime(location.startTime);
+      setEndTime(location.endTime);
+      setDescription(location.description || '');
+      setLocType(location.type);
+      locationRef.current = location;
+    }
+  }, [location, isEditing]);
+
+  // 내용을 수정하고 isEditing이 변경되면 상태 갱신
+  useEffect(() => {
+    // 편집 시작시 상태 초기화
+    if (isEditing) {
+      setLocationName(location.name);
+      setStartTime(location.startTime);
+      setEndTime(location.endTime);
+      setDescription(location.description || '');
+      setLocType(location.type);
+    }
+  }, [isEditing, location]);
   return (
     <li
       className="flex items-center space-x-4 cursor-pointer hover:bg-blue-50 p-4 rounded-lg transition-all duration-300 border border-transparent hover:border-blue-200"
@@ -176,26 +234,141 @@ const LocationItem: React.FC<LocationItemProps> = ({
       onMouseLeave={onMouseLeave}
       onClick={onClick}
     >
-      <div 
-        className="flex items-center justify-center w-12 h-12 rounded-full text-white font-bold flex-shrink-0 shadow-md" 
+      <div
+        className="flex items-center justify-center w-12 h-12 rounded-full text-white font-bold flex-shrink-0 shadow-md"
         style={{ backgroundColor: color, aspectRatio: "1 / 1", minWidth: "3rem" }}
       >
         {index + 1}
       </div>
       <div className="flex-1">
-        <span className="font-semibold text-lg block mb-1">{location.name}</span>
-        <div className="flex items-center mb-1 text-sm text-gray-600">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span>{location.startTime} ~ {location.endTime}</span>
-        </div>
-        {location.description && (
+
+        {!isEditing && (
+          <div className="flex items-center">
+            {location.isModified && (
+              <span className="mr-2 text-amber-500 font-bold text-sm">★</span>
+            )}
+            <span className="font-semibold text-lg block mb-1">{location.name}</span>
+          </div>
+        )}
+
+        {!isEditing && (
+          <div className="flex items-center mb-1 text-sm text-gray-600">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{location.startTime} ~ {location.endTime}</span>
+          </div>
+        )}
+
+        {location.description && !isEditing && (
           <p className="text-sm text-gray-700 mb-2 italic">&ldquo;{location.description}&rdquo;</p>
         )}
-        <div className="inline-block px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-          {LOCATION_TYPE_MAP[locationType] || '기타'}
-        </div>
+
+        {!isEditing && (
+          <div className="inline-block px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+            {LOCATION_TYPE_MAP[locationType] || '기타'}
+          </div>
+        )}
+
+        {/* 편집 모드일 경우 여행 내용 편집 기능 표시 */}
+        {isEditMode && !isEditing && (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="text-sm text-blue-500 hover:text-blue-700 mb-2"
+          >
+            여행 내용 수정하기
+          </button>
+        )}
+
+        {/* 편집 화면 */}
+        {isEditing && (
+          <div className="mt-2 mb-3 w-full">
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">여행지명</label>
+              <input
+                type="text"
+                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                value={locationName}
+                onChange={(e) => setLocationName(e.target.value)}
+                placeholder="여행지명을 입력해주세요"
+              />
+            </div>
+
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">장소 유형</label>
+              <select
+                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                value={locType}
+                onChange={(e) => setLocType(Number(e.target.value))}
+              >
+                {Object.entries(LOCATION_TYPE_MAP).map(([key, value]) => (
+                  <option key={key} value={key}>{value}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mb-2 flex items-center space-x-2">
+              <div className="flex-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">시작 시간</label>
+                <input
+                  type="time"
+                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">종료 시간</label>
+                <input
+                  type="time"
+                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">여행 내용</label>
+              <textarea
+                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="여행 내용을 작성해주세요"
+                rows={3}
+              />
+            </div>
+
+            <div className="flex justify-end mt-2 space-x-2">
+              <button
+                onClick={() => setIsEditing(false)}
+                className="px-2 py-1 text-xs text-gray-600 bg-gray-100 rounded-md"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => {
+                  if (onContentChange) {
+                    // 수정된 내용으로 업데이트하고 isModified 플래그 제거
+                    onContentChange({
+                      ...location,
+                      name: locationName,
+                      startTime: startTime,
+                      endTime: endTime,
+                      description: description,
+                      type: locType
+                      // isModified 플래그를 유지하여 변경사항이 있었음을 계속 표시
+                    });
+                  }
+                  setIsEditing(false);
+                }}
+                className="px-2 py-1 text-xs text-white bg-blue-500 rounded-md"
+              >
+                저장
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </li>
   );
@@ -206,6 +379,10 @@ interface RouteItemProps {
   onClick: () => void;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  isEditMode?: boolean;
+  onRouteChange?: (route: any, dayIndex: any, routeIndex: any) => void;
+  dayIndex: number;
+  routeIndex: number;
 }
 
 /**
@@ -216,24 +393,154 @@ const RouteItem: React.FC<RouteItemProps> = ({
   onClick,
   onMouseEnter,
   onMouseLeave,
+  isEditMode = false,
+  onRouteChange,
+  dayIndex,
+  routeIndex
 }) => {
   const methodType = (route.transportationType || route.method) as keyof typeof TRANSPORT_TYPE_MAP;
-  
+  const [isEditing, setIsEditing] = useState(false);
+  const [transportType, setTransportType] = useState<number>(route.transportationType || route.method || 1);
+  const [transportMinutes, setTransportMinutes] = useState<number>(
+    (() => {
+      if (route.time) {
+        try {
+          return route.time;
+        } catch (e) {
+          return 0; // 오류 발생 시 0분으로 기본 설정
+        }
+      }
+      return 0; // 시간 없으면 0분으로 기본 설정
+    })()
+  );
+
+  // 편집 시작 시 상태 초기화
+  useEffect(() => {
+    if (isEditing) {
+      setTransportType(route.transportationType || route.method || 1);
+      // 시간 형식에서 분 단위로 변환
+      if (route.time) {
+        try {
+          setTransportMinutes(route.time); // 0분은 허용하지 않음
+        } catch (e) {
+          // 시간 형식이 잘못된 경우 기본값 0분 사용
+          setTransportMinutes(0);
+        }
+      } else {
+        setTransportMinutes(0); // 기본값 0분
+      }
+    }
+  }, [isEditing, route]);
+
+  // 경로 변경 함수
+  const handleSaveRouteChanges = () => {
+    if (onRouteChange) {
+      const updatedRoute = {
+        ...route,
+        transportationType: transportType,
+        method: transportType, // 이전 속성과의 호환성을 위해 양쪽 다 업데이트
+        time: transportMinutes
+      };
+      onRouteChange(updatedRoute, dayIndex, routeIndex);
+    }
+    setIsEditing(false);
+  };
+
   return (
     <li className="flex items-center space-x-2 pl-16 pb-4">
       <div className="border-l-2 border-dashed h-10 -mt-2 ml-6 border-gray-300"></div>
-      <div
-        className="cursor-pointer ml-2 flex items-center p-2 px-4 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all duration-300 shadow-sm"
-        onClick={onClick}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          {TRANSPORT_ICON_PATHS[methodType] || <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />}
-        </svg>
-        <span className="font-medium">{TRANSPORT_TYPE_MAP[methodType] || '이동'}</span>
-        {route.time && <span className="ml-2 text-xs text-blue-500">({route.time})</span>}
-      </div>
+      {!isEditing ? (
+        <div className="flex items-center">
+          <div
+            className="cursor-pointer ml-2 flex items-center p-2 px-4 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all duration-300 shadow-sm"
+            onClick={isEditMode ? () => setIsEditing(true) : onClick}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {TRANSPORT_ICON_PATHS[methodType] || <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />}
+            </svg>
+            <span className="font-medium">{TRANSPORT_TYPE_MAP[methodType] || '이동'}</span>
+            {route.time && (
+              <span className="ml-2 text-xs text-blue-500">
+                {(() => {
+                  try {
+                    // 시간을 분 단위로 변환
+                    return `(${transportMinutes}분)`;
+                  } catch (e) {
+                    // 시간 형식이 잘못된 경우 기본값 사용
+                    return '(error)';
+                  }
+                })()}
+              </span>
+            )}
+          </div>
+          {isEditMode && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="ml-2 text-xs text-blue-500 hover:text-blue-700"
+            >
+              이동 방법 수정
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="ml-2 p-3 bg-blue-50 rounded-lg shadow-sm w-full">
+          <div className="flex items-center space-x-2 mb-2">
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">이동 방법</label>
+              <select
+                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                value={transportType}
+                onChange={(e) => setTransportType(Number(e.target.value))}
+              >
+                {Object.entries(TRANSPORT_TYPE_MAP).map(([key, value]) => (
+                  <option key={key} value={key}>{value}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">소요 시간(분)</label>
+              <div className="flex items-center">
+                <input
+                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                  value={transportMinutes}
+                  onChange={(e) => setTransportMinutes(parseInt(e.target.value) || 0)}
+                />
+                <span className="ml-2 text-xs text-gray-500">분</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <button
+              onClick={() => {
+                // 편집 모드 종료
+                setIsEditing(false);
+                // 원래 값으로 되돌리기 (취소)
+                if (route.time) {
+                  try {
+                    setTransportMinutes(route.time || 0);
+                  } catch (e) {
+                    setTransportMinutes(route.time);
+                  }
+                } else {
+                  setTransportMinutes(route.time);
+                }
+                setTransportType(route.transportationType || route.method || 1);
+              }}
+              className="px-2 py-1 text-xs text-gray-600 bg-gray-100 rounded-md"
+            >
+              취소
+            </button>
+            <button
+              onClick={handleSaveRouteChanges}
+              className="px-2 py-1 text-xs text-white bg-blue-500 rounded-md"
+            >
+              저장
+            </button>
+          </div>
+        </div>
+      )}
     </li>
   );
 };

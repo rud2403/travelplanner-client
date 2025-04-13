@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTravelStore } from '@/store/useTravelStore';
 import { TravelLocation, TravelPlan } from '@/types/travel';
-import { saveTravelPlanAPI, exportTravelPlanToExcel } from '@/services/travelPlan';
+import { saveTravelPlanAPI, exportTravelPlanToExcel, updateTravelPlanAPI } from '@/services/travelPlan';
 
 /**
  * 여행 일정 관련 이벤트 핸들러를 관리하는 커스텀 훅
@@ -99,6 +99,47 @@ function useTripHandlers() {
       alert('여행 일정 저장에 실패했습니다. 다시 시도해 주세요.');
     }
   };
+  
+  // 여행 계획 업데이트 핸들러
+  const handleUpdatePlan = async () => {
+    // id가 없으면 새로운 계획을 저장하지 업데이트하지 않음
+    if (!id) {
+      console.error('업데이트할 여행 일정 ID가 없습니다.');
+      return;
+    }
+
+    const travelPlan = {
+      id,
+      ...getTravelPlanData(),
+    };
+
+    try {
+      const result = await updateTravelPlanAPI(travelPlan);
+      console.log('여행 일정 업데이트 완료:', result);
+      alert('여행 일정이 성공적으로 업데이트되었습니다!');
+    } catch (error: any) {
+      console.error('여행 일정 업데이트 실패:', error);
+      
+      // 인증 관련 오류 처리
+      if (error.response && error.response.status === 401) {
+        alert('로그인이 필요하거나 세션이 만료되었습니다. 다시 로그인해주세요.');
+        window.location.href = '/auth/signin';
+        return;
+      }
+      
+      // 사용자를 찾을 수 없는 오류 처리
+      if (error.response && error.response.data && 
+          (error.response.data.message?.includes('user not found') || 
+           error.response.data.message?.includes('User not found'))) {
+        alert('사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
+        window.location.href = '/auth/signin';
+        return;
+      }
+      
+      // 기타 오류
+      alert('여행 일정 업데이트에 실패했습니다. 다시 시도해 주세요.');
+    }
+  };
 
   // 엑셀 내보내기 핸들러
   const handleExportExcel = async () => {
@@ -139,7 +180,8 @@ function useTripHandlers() {
     handleLocationClick,
     handleMarkerClick,
     handleSavePlan,
-    handleExportExcel
+    handleExportExcel,
+    handleUpdatePlan
   };
 }
 
