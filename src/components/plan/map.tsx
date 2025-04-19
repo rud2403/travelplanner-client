@@ -13,15 +13,6 @@ const containerStyle = {
   borderRadius: '12px',
 };
 
-// Google Maps 맵 스타일 옵션
-const mapOptions = {
-  scrollwheel: true,
-  zoomControl: true,
-  streetViewControl: false,
-  mapTypeControl: false,
-  fullscreenControl: true,
-};
-
 // 위치 유형별 스타일 정의
 const locationTypeStyles = {
   backgroundColor: {
@@ -50,6 +41,9 @@ interface MapComponentProps {
   hoveredLocation: TravelLocation | null;
   isEditMode?: boolean;
   onMarkerChange?: () => void;
+  addMarkerMode?: boolean;
+  onAddMarker?: (lat: number, lng: number, eventType?: string) => void;
+  tempMarkerPosition?: { lat: number, lng: number } | null;
 }
 
 /**
@@ -60,7 +54,10 @@ const MapComponent: React.FC<MapComponentProps> = ({
   onMarkerClick, 
   hoveredLocation,
   isEditMode = false,
-  onMarkerChange
+  onMarkerChange,
+  addMarkerMode = false,
+  onAddMarker,
+  tempMarkerPosition
 }) => {
   const router = useRouter();
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -86,14 +83,36 @@ const MapComponent: React.FC<MapComponentProps> = ({
     }
   }, [travelPlanData, router]);
 
-  // 포커스된 위치로 지도 이동
+  // 마커 추가 모드 변경 감지 및 인포창 초기화
   useEffect(() => {
+    if (addMarkerMode === true) {
+      // 마커 추가 모드 시작 시 항상 인포창 클리어
+      console.log('마커 추가 모드 활성화: 인포창 제거');
+      setActiveLocation(null);
+    }
+  }, [addMarkerMode]);
+  
+  // 임시 마커 위치가 변경될 때도 인포창 제거
+  useEffect(() => {
+    if (addMarkerMode && tempMarkerPosition) {
+      setActiveLocation(null);
+    }
+  }, [addMarkerMode, tempMarkerPosition]);
+
+  // 포커스된 위치로 지도 이동 (마커 추가 모드가 아닐 때만)
+  useEffect(() => {
+    // 마커 추가 모드 상태 체크
+    if (addMarkerMode) {
+      return; // 마커 추가 모드에서는 아무 것도 하지 않음
+    }
+    
+    // 일반 모드에서만 지도 포커싱 및 인포창 표시
     if (focusedLocation && mapRef.current) {
       mapRef.current.panTo({ lat: focusedLocation.lat, lng: focusedLocation.lng });
       mapRef.current.setZoom(15);
-      setActiveLocation(focusedLocation); // 포커스된 위치에 인포윈도우 표시
+      setActiveLocation(focusedLocation); // 인포윈도우 표시
     }
-  }, [focusedLocation]);
+  }, [focusedLocation, addMarkerMode]);
 
   // 로딩 중 표시
   if (!isLoaded) {
@@ -144,6 +163,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
    * 마커 클릭 이벤트 처리
    */
   const handleMarkerClick = (location: TravelLocation) => {
+    // 여행일정 수정에서도 기존 마커 클릭시 인포창이 표시되도록 수정
     // 같은 마커를 다시 클릭하면 인포윈도우 토글
     setActiveLocation(prev => prev === location ? null : location);
     onMarkerClick(location);
@@ -157,31 +177,73 @@ const MapComponent: React.FC<MapComponentProps> = ({
   };
 
   /**
-   * 지도 클릭 핸들러 - 빈 곳 클릭 시 정보창 닫기
+   * 지도 클릭 이벤트 핸들러
    */
   const handleMapClick = (e: google.maps.MapMouseEvent) => {
-    if (!e.latLng) {
-      setActiveLocation(null);
+    if (!e.latLng) return;
+    
+    // 마커 추가 모드일 때는 항상 인포창 제거
+    setActiveLocation(null);
+    
+    // 마커 추가 모드에서만 처리
+    if (addMarkerMode && onAddMarker) {
+      const lat = e.latLng.lat();
+      const lng = e.latLng.lng();
+      
+      console.log('지도 클릭 - 위치 선택됨:', lat, lng);
+            
+      // 위치 정보를 전역 상태에 저장 (타임라인에서 사용)
+      useTravelStore.setState({
+        focusedLocation: {
+          lat: lat,
+          lng: lng,
+          name: "",
+          type: 1,
+          startTime: "",
+          endTime: ""
+        }
+      });
+      
+      // 콜백 함수 호출
+      onAddMarker(lat, lng, 'click');
     }
-  };
-
-  /**
-   * 지도 로드 시 참조 저장
-   */
-  const handleLoad = (mapInstance: google.maps.Map) => {
-    mapRef.current = mapInstance;
   };
 
   return (
     <div className="relative rounded-xl overflow-hidden shadow-lg h-full">
+      {/* 마커 추가 모드일 때 안내 메시지 */}
+      {addMarkerMode && (
+        <div className="absolute top-4 left-0 right-0 z-10 flex justify-center">
+          <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg">
+            지도에서 마커를 추가할 위치를 클릭하세요
+          </div>
+        </div>
+      )}
       <GoogleMap
         key={selectedDate}
         mapContainerStyle={containerStyle}
         center={travelPlanData[0]?.locations[0] || { lat: 37.5665, lng: 126.9780 }} // 서울 중심부 기본 좌표
         zoom={14}
-        onLoad={handleLoad}
-        options={mapOptions}
+        onLoad={(map) => { mapRef.current = map; }}
         onClick={handleMapClick}
+        options={{
+          scrollwheel: true,
+          zoomControl: !addMarkerMode, // 마커 추가 모드에서는 줌 컨트롤 감추기
+          streetViewControl: false,
+          mapTypeControl: false,
+          fullscreenControl: !addMarkerMode, // 마커 추가 모드에서는 전체화면 버튼 감추기
+          draggableCursor: addMarkerMode ? 'crosshair' : 'default',
+          clickableIcons: false, // 중요: POI 클릭 비활성화
+          disableDoubleClickZoom: true, // 더블클릭 줌 비활성화
+          styles: [
+            // 모든 POI 요소 숨기기
+            { featureType: "poi", stylers: [{ visibility: "off" }] },
+            // 모든 도로 아이콘 숨기기
+            { featureType: "road", elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+            // 대중교통 아이콘 숨기기
+            { featureType: "transit", stylers: [{ visibility: "off" }] }
+          ]
+        }}
       >
         {travelPlanData.map((dateLocation) => {
           if (!dateLocation || !dateLocation.locations || !dateLocation.routes) {
@@ -230,12 +292,12 @@ const MapComponent: React.FC<MapComponentProps> = ({
               {/* 마커 렌더링 */}
               {dateLocation.locations.map((location, index) => (
                 <Marker
-                key={`${location.name}-${index}`}
-                position={{ lat: location.lat, lng: location.lng }}
-                icon={createCustomMarkerIcon(color, location, index)}
-                label={createCustomLabel((index + 1).toString())}
-                onClick={() => handleMarkerClick(location)}
-                zIndex={activeLocation === location ? 1000 : 100}
+                  key={`${location.name}-${index}`}
+                  position={{ lat: location.lat, lng: location.lng }}
+                  icon={createCustomMarkerIcon(color, location, index)}
+                  label={createCustomLabel((index + 1).toString())}
+                  onClick={() => handleMarkerClick(location)}
+                  zIndex={activeLocation === location ? 1000 : 100}
                   draggable={isEditMode}
                   onDragEnd={(e) => {
                     if (isEditMode && e.latLng) {
@@ -277,6 +339,22 @@ const MapComponent: React.FC<MapComponentProps> = ({
           );
         })}
 
+        {/* 임시 마커 (위치 선택 모드에서만 표시) 또는 선택된 마커 */}
+        {tempMarkerPosition && (
+          <Marker
+            position={tempMarkerPosition}
+            icon={{
+              path: google.maps.SymbolPath.CIRCLE,
+              fillColor: addMarkerMode ? '#FF0000' : '#4CAF50',  // 마커 추가 모드일 때는 빨간색, 아닐 때는 초록색
+              fillOpacity: 1,
+              strokeColor: '#FFFFFF',
+              strokeWeight: 2,
+              scale: addMarkerMode ? 8 : 10,  // 마커 추가 모드가 아닐 때는 조금 더 크게
+            }}
+            zIndex={1000}  // 다른 마커보다 상위에 표시
+          />
+        )}
+
         {/* 활성화된 위치에 인포윈도우 표시 */}
         {activeLocation && (
           <InfoWindow
@@ -285,6 +363,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
             options={{
               pixelOffset: new google.maps.Size(0, -10),
               maxWidth: 320,
+              disableAutoPan: false
             }}
           >
             <LocationInfoCard location={activeLocation} />
