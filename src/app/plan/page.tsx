@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 
 // 동적으로 로드하는 Planning
-const Planning = dynamic(() => import('@/components/plan/planning'), {
+const Planning = dynamic(() => import('@/components/plan/Planning'), {
   ssr: false,
 });
 
