@@ -17,12 +17,14 @@ import SidebarToggle from '@/components/common/SidebarToggle';
 import useResizable from '@/hooks/useResizable';
 import useTripHandlers from '@/hooks/useTripHandlers';
 
-// import travelPlanData from '@/data/travelPlanData';
-
 const Planning = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [hasChanges, setHasChanges] = useState<boolean>(false);
+  const [addMarkerMode, setAddMarkerMode] = useState<boolean>(false);
+  const [markerTarget, setMarkerTarget] = useState<{dayIndex: number, callback: (lat: number, lng: number) => void} | null>(null);
+  const [tempMarkerPosition, setTempMarkerPosition] = useState<{lat: number, lng: number} | null>(null);
+  const [selectedMarkerPosition, setSelectedMarkerPosition] = useState<{lat: number, lng: number} | null>(null);
   const router = useRouter();
 
   const {
@@ -55,6 +57,23 @@ const Planning = () => {
     handleExportExcel,
     handleUpdatePlan
   } = useTripHandlers();
+
+  // 여행 계획 추가 완료 이벤트 처리 - 이 부분이 추가된 코드
+  useEffect(() => {
+    // 여행일정 추가 완료 이벤트 리스너
+    const handleClearSelectedMarker = () => {
+      console.log('여행일정 추가 완료: 마커 제거');
+      setSelectedMarkerPosition(null);
+    };
+    
+    // 이벤트 리스너 등록
+    window.addEventListener('clearSelectedMarker', handleClearSelectedMarker);
+    
+    // 컴포넌트 언마운트 시 정리
+    return () => {
+      window.removeEventListener('clearSelectedMarker', handleClearSelectedMarker);
+    };
+  }, []);
 
   // 날짜 선택 핸들러
   const handleDateClick = (date: number | null) => {
@@ -92,6 +111,13 @@ const Planning = () => {
       setHasChanges(true);
     }
   };
+  
+  // 새 여행 계획이 추가되었을 때도 호출될 핸들러
+  useEffect(() => {
+    if (isEditMode) {
+      setHasChanges(true);
+    }
+  }, [dateLocations, isEditMode]);
   
   // 경로 정보 변경 핸들러
   const handleRouteChange = (updatedRoute: any, dayIndex: number, routeIndex: number) => {
@@ -279,6 +305,22 @@ const Planning = () => {
                 isEditMode={isEditMode}
                 onLocationContentChange={handleLocationContentChange}
                 onRouteChange={handleRouteChange}
+                addMarkerMode={addMarkerMode}
+                setAddMarkerMode={setAddMarkerMode}
+                onAddMarker={(lat, lng, eventType) => {
+                  // Timeline에서 마커 추가 버튼 클릭 시 - 마커 추가 모드 활성화
+                  if (!eventType) {
+                    setAddMarkerMode(true);
+                    setMarkerTarget({
+                      dayIndex: selectedDate !== null ? selectedDate : 0,
+                      callback: () => {}
+                    });
+                  }
+                  // 2. 마우스 이동 시에는 임시 마커 위치만 업데이트
+                  else if (eventType === 'move' && addMarkerMode) {
+                    setTempMarkerPosition({ lat, lng });
+                  }
+                }}
               />
             </div>
           </section>
@@ -306,6 +348,40 @@ const Planning = () => {
                 hoveredLocation={hoveredLocation}
                 isEditMode={isEditMode}
                 onMarkerChange={handleChange}
+                addMarkerMode={addMarkerMode}
+                tempMarkerPosition={addMarkerMode ? tempMarkerPosition : selectedMarkerPosition}
+                onAddMarker={(lat, lng, eventType) => {
+                  // 1. 마우스 이동 시
+                  if (eventType === 'move') {
+                    // 임시 마커 위치 업데이트
+                    if (addMarkerMode) {
+                      setTempMarkerPosition({ lat, lng });
+                    }
+                    return;
+                  }
+                  
+                  // 2. 버튼 클릭으로 마커 추가 모드 시작
+                  if (!eventType || eventType === 'button') {
+                    console.log('마커 추가 모드 시작');
+                    // 이전 화면에서 마커 선택 중이었다면 초기화
+                    useTravelStore.setState({ focusedLocation: null });
+                    setAddMarkerMode(true);
+                    return;
+                  }
+                  
+                  // 3. 지도 클릭으로 마커 선택 완료
+                  if (eventType === 'click') {
+                    console.log('지도에서 위치 선택함:', lat, lng);
+                    
+                    // 마커 추가 완료 처리
+                    setSelectedMarkerPosition({ lat, lng });
+                    setAddMarkerMode(false); // 마커 추가 모드 끝남
+                    setTempMarkerPosition(null); // 임시 마커 제거
+                    
+                    // 구성에서는 대부분 필요 없지만 호환성을 위해 유지
+                    setMarkerTarget(null);
+                  }
+                }}
               />
             </div>
           </section>
