@@ -50,16 +50,23 @@ const Timeline: React.FC<TimelineProps> = ({
   const displayLocations = selectedDate !== null ? [dateLocations[selectedDate]] : dateLocations;
 
   return (
-    <div className="flex overflow-x-auto space-x-6 p-4 pb-6 hide-scrollbar">
+    <div className="flex space-x-6">
       <style jsx global>{`
-        /* Hide scrollbar for Chrome, Safari and Opera */
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
+        /* 스크롤바 스타일 지정 */
+        ::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
         }
-        /* Hide scrollbar for IE, Edge and Firefox */
-        .hide-scrollbar {
-          -ms-overflow-style: none;  /* IE and Edge */
-          scrollbar-width: none;  /* Firefox */
+        ::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #c5c5c5;
+          border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #a1a1a1;
         }
       `}</style>
 

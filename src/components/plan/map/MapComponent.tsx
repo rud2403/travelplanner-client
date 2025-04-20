@@ -1,5 +1,7 @@
 'use client';
 
+import { dispatchLocationUpdateEvent } from '../event/LocationEvents';
+
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GoogleMap, Marker, Polyline, useLoadScript, InfoWindow } from '@react-google-maps/api';
@@ -55,43 +57,88 @@ const MapComponent: React.FC<MapComponentProps> = ({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
   });
 
-  // 데이터 유효성 검사
+  // 위치 정보 이벤트 등록 - 상태 변경시 자동으로 이벤트 발생
   useEffect(() => {
+    // 이벤트 핸들러만 등록하고 직접적인 구독은 제거
+    return () => {};
+  }, []);
+
+  // 데이터 유효성 검사 및 컴포넌트 마운트 시 임시 위치 정보 초기화
+  useEffect(() => {
+    // 데이터 유효성 검사
     if ((!travelPlanData || travelPlanData.length === 0)) {
       router.push('/');
     }
+
+    // 컴포넌트 마운트 시 임시 위치 정보 초기화
+    useTravelStore.getState().resetLocationState();
+    
+    // 컴포넌트 언마운트 시 임시 위치 정보 초기화
+    return () => {
+      useTravelStore.getState().resetLocationState();
+    };
   }, [travelPlanData, router]);
 
   // 마커 추가 모드 변경 감지 및 인포창 초기화
   useEffect(() => {
     if (addMarkerMode === true) {
       // 마커 추가 모드 시작 시 항상 인포창 클리어
-      console.log('마커 추가 모드 활성화: 인포창 제거');
       setActiveLocation(null);
     }
   }, [addMarkerMode]);
   
-  // 임시 마커 위치가 변경될 때도 인포창 제거
+  // 임시 마커 감지 - 임시 마커가 있을 때만 인포창 제거
   useEffect(() => {
-    if (addMarkerMode && tempMarkerPosition) {
+    // 임시 마커가 표시될 때는 인포창 제거
+    if (tempMarkerPosition) {
       setActiveLocation(null);
     }
-  }, [addMarkerMode, tempMarkerPosition]);
-
-  // 포커스된 위치로 지도 이동 (마커 추가 모드가 아닐 때만)
+  }, [tempMarkerPosition]);
+  
+  // editMode 변경 시 임시 위치 정보를 모두 제거
   useEffect(() => {
-    // 마커 추가 모드 상태 체크
+    const handleEditModeChanged = (event: CustomEvent) => {
+      setActiveLocation(null);
+      
+      // 전역 상태에서 tempSelectedLocation 초기화 확인
+      useTravelStore.getState().resetLocationState();
+    };
+    
+    // 여행일정 추가 완료 이벤트 리스너
+    const handleClearSelectedMarker = () => {
+      setActiveLocation(null);
+      
+      // 위치 상태 초기화 확인
+      useTravelStore.getState().resetLocationState();
+    };
+    
+    window.addEventListener('editModeChanged', handleEditModeChanged as EventListener);
+    window.addEventListener('clearSelectedMarker', handleClearSelectedMarker as EventListener);
+    
+    return () => {
+      window.removeEventListener('editModeChanged', handleEditModeChanged as EventListener);
+      window.removeEventListener('clearSelectedMarker', handleClearSelectedMarker as EventListener);
+    };
+  }, []);
+
+  // 포커스된 위치로 지도 이동
+  useEffect(() => {
+    // 마커 추가 모드에서는 아무 것도 하지 않음
     if (addMarkerMode) {
-      return; // 마커 추가 모드에서는 아무 것도 하지 않음
+      return;
     }
     
     // 일반 모드에서만 지도 포커싱 및 인포창 표시
     if (focusedLocation && mapRef.current) {
       mapRef.current.panTo({ lat: focusedLocation.lat, lng: focusedLocation.lng });
       mapRef.current.setZoom(15);
-      setActiveLocation(focusedLocation); // 인포윈도우 표시
+      
+      // 임시 마커가 없을 때만 인포창 표시
+      if (!tempMarkerPosition) {
+        setActiveLocation(focusedLocation);
+      }
     }
-  }, [focusedLocation, addMarkerMode]);
+  }, [focusedLocation, addMarkerMode, tempMarkerPosition]);
 
   // 로딩 중 표시
   if (!isLoaded) {
@@ -154,6 +201,18 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const handleInfoWindowClose = () => {
     setActiveLocation(null);
   };
+  
+  /**
+   * 임시 마커인지 확인
+   */
+  const isTemporaryMarker = (location: TravelLocation): boolean => {
+    if (tempMarkerPosition && 
+        location.lat === tempMarkerPosition.lat && 
+        location.lng === tempMarkerPosition.lng) {
+      return true;
+    }
+    return false;
+  };
 
   /**
    * 지도 클릭 이벤트 핸들러
@@ -161,30 +220,50 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const handleMapClick = (e: google.maps.MapMouseEvent) => {
     if (!e.latLng) return;
     
-    // 마커 추가 모드일 때는 항상 인포창 제거
-    setActiveLocation(null);
+    // 인포창 닫기 (임시 마커 추가 시에만)
+    if (addMarkerMode) {
+      setActiveLocation(null);
+    }
     
     // 마커 추가 모드에서만 처리
     if (addMarkerMode && onAddMarker) {
       const lat = e.latLng.lat();
       const lng = e.latLng.lng();
       
-      console.log('지도 클릭 - 위치 선택됨:', lat, lng);
-            
-      // 위치 정보를 전역 상태에 저장 (타임라인에서 사용)
-      useTravelStore.setState({
-        focusedLocation: {
-          lat: lat,
-          lng: lng,
-          name: "",
-          type: 1,
-          startTime: "",
-          endTime: ""
-        }
-      });
-      
-      // 콜백 함수 호출
-      onAddMarker(lat, lng, 'click');
+      try {
+        // 상태 처리 개선
+        // 1. 먼저 전역 상태의 tempSelectedLocation 정보 초기화
+        useTravelStore.getState().resetLocationState();
+        
+        // 잠시 대기 - 비동기 작업으로 인해 발생할 수 있는 렌더링 이슈 방지
+        setTimeout(() => {
+          // 2. 새 위치 정보 저장
+          // 전역 상태 업데이트
+          const travelStore = useTravelStore.getState();
+          travelStore.setTempSelectedLocation({
+            lat: lat,
+            lng: lng,
+            name: "",
+            type: 1,
+            startTime: "",
+            endTime: ""
+          });
+          
+          // 3. 현재 선택된 일차 정보 보존
+          const currentSelectedDate = travelStore.selectedDate;
+          if (currentSelectedDate !== null) {
+            travelStore.setPreservedSelectedDate(currentSelectedDate);
+          }
+          
+          // 위치 정보 업데이트 이벤트 직접 발생
+          dispatchLocationUpdateEvent(lat, lng, currentSelectedDate);
+          
+          // 4. callback 함수 호출
+          onAddMarker(lat, lng, 'click');
+        }, 50); // 약간의 지연으로 상태 처리 순서 보장
+      } catch (err) {
+        console.error('위치 선택 처리 오류:', err);
+      }
     }
   };
 
@@ -294,15 +373,26 @@ const MapComponent: React.FC<MapComponentProps> = ({
                       );
                       
                       if (locationIndex !== -1) {
+                        // 여기서 특별 처리: 현재 selectedDate 값을 보존하기
+                        const currentSelectedDate = useTravelStore.getState().selectedDate;
+                        
+                        // preservedSelectedDate 상태에 현재 선택된 일차 저장 
+                        if (currentSelectedDate !== null) {
+                          useTravelStore.getState().setPreservedSelectedDate(currentSelectedDate);
+                        }
+
                         // 변경된 위치 값 업데이트
-                        updatedDateLocations[dayIndex].locations[locationIndex] = {
+                        const updatedLocation = {
                           ...updatedDateLocations[dayIndex].locations[locationIndex],
                           lat: newLat,
                           lng: newLng,
                           isModified: true // 수정되었음을 표시
                         };
                         
-                        // Zustand 스토어 업데이트
+                        // 해당 위치만 수정하여 상태 업데이트
+                        updatedDateLocations[dayIndex].locations[locationIndex] = updatedLocation;
+                        
+                        // 상태 업데이트
                         setDateLocations(updatedDateLocations);
                         
                         // 변경 함수 호출
@@ -318,24 +408,33 @@ const MapComponent: React.FC<MapComponentProps> = ({
           );
         })}
 
-        {/* 임시 마커 (위치 선택 모드에서만 표시) 또는 선택된 마커 */}
+        {/* 임시 마커 (위치 선택 모드에서만 표시) */}
         {tempMarkerPosition && (
           <Marker
             position={tempMarkerPosition}
             icon={{
               path: google.maps.SymbolPath.CIRCLE,
-              fillColor: addMarkerMode ? '#FF0000' : '#4CAF50',  // 마커 추가 모드일 때는 빨간색, 아닐 때는 초록색
+              fillColor: '#4CAF50',  // 초록색 임시 마커
               fillOpacity: 1,
               strokeColor: '#FFFFFF',
               strokeWeight: 2,
-              scale: addMarkerMode ? 8 : 10,  // 마커 추가 모드가 아닐 때는 조금 더 크게
+              scale: 12,  // 더 명확하게 표시
             }}
             zIndex={1000}  // 다른 마커보다 상위에 표시
+            // 임시 마커에는 클릭 아예 방지
+            clickable={false}
+            // 드래그 불가
+            draggable={false}
+            // 인포창 절대 열리지 않도록 하기
+            onClick={() => {
+              // 클릭이 설정되지 않아야 하지만 추가로 방지적 조치
+              setActiveLocation(null);
+            }}
           />
         )}
 
-        {/* 활성화된 위치에 인포윈도우 표시 */}
-        {activeLocation && (
+        {/* 활성화된 위치에 인포윈도우 표시 - 임시 마커가 아닌 경우에만 */}
+        {activeLocation && !isTemporaryMarker(activeLocation) && (
           <InfoWindow
             position={{ lat: activeLocation.lat, lng: activeLocation.lng }}
             onCloseClick={handleInfoWindowClose}

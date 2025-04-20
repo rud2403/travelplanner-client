@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { TravelLocation } from '@/types/travel';
-import { LOCATION_TYPE_MAP } from '../common/constants';
+import { LOCATION_TYPE_MAP, LOCATION_TYPE_STYLES } from '../common/constants';
 
 interface LocationItemProps {
   location: TravelLocation;
@@ -29,6 +29,9 @@ const LocationItem: React.FC<LocationItemProps> = ({
   onContentChange
 }) => {
   const locationType = location.type as keyof typeof LOCATION_TYPE_MAP;
+  const bgColor = LOCATION_TYPE_STYLES.backgroundColor[locationType] || '#F3F4F6';
+  const textColor = LOCATION_TYPE_STYLES.textColor[locationType] || '#374151';
+  const label = LOCATION_TYPE_STYLES.label[locationType] || '기타';
   const [isEditing, setIsEditing] = useState(false);
   const [description, setDescription] = useState(location.description || '');
   const [locationName, setLocationName] = useState(location.name);
@@ -63,6 +66,21 @@ const LocationItem: React.FC<LocationItemProps> = ({
     }
   }, [isEditing, location]);
   
+  // 수정 모드(isEditMode)가 변경될 때 isEditing 초기화
+  useEffect(() => {
+    // 수정 모드가 비활성화되면 편집 모드도 끄기
+    if (!isEditMode && isEditing) {
+      setIsEditing(false);
+      // 원래 값으로 복원
+      setLocationName(location.name);
+      setStartTime(location.startTime);
+      setEndTime(location.endTime);
+      setDescription(location.description || '');
+      setLocType(location.type);
+      console.log('수정 모드 비활성화로 인한 편집 모드 종료');
+    }
+  }, [isEditMode, isEditing, location]);
+  
   return (
     <li
       className="flex items-center space-x-4 cursor-pointer hover:bg-blue-50 p-4 rounded-lg transition-all duration-300 border border-transparent hover:border-blue-200"
@@ -79,44 +97,42 @@ const LocationItem: React.FC<LocationItemProps> = ({
       <div className="flex-1">
 
         {!isEditing && (
-          <div className="flex items-center">
-            {location.isModified && (
-              <span className="mr-2 text-amber-500 font-bold text-sm">★</span>
+          <div className="flex flex-col">
+            <div className="flex items-center mb-1">
+              <span className="font-semibold text-lg">{location.name}</span>
+            </div>
+
+            <div className="flex items-center mb-1 text-sm text-gray-600">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{location.startTime} ~ {location.endTime}</span>
+            </div>
+
+            {location.description && (
+              <p className="text-sm text-gray-700 mb-2 italic">&ldquo;{location.description}&rdquo;</p>
             )}
-            <span className="font-semibold text-lg block mb-1">{location.name}</span>
+
+            <div className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold mb-2 w-fit" 
+                 style={{ backgroundColor: bgColor, color: textColor }}>
+              {label}
+            </div>
+            
+            {/* 편집 모드일 경우 여행 내용 편집 기능 표시 */}
+            {isEditMode && (
+              <div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation(); // 버블링 방지
+                    setIsEditing(true);
+                  }}
+                  className="text-sm text-blue-500 hover:text-blue-700"
+                >
+                  여행 내용 수정하기
+                </button>
+              </div>
+            )}
           </div>
-        )}
-
-        {!isEditing && (
-          <div className="flex items-center mb-1 text-sm text-gray-600">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{location.startTime} ~ {location.endTime}</span>
-          </div>
-        )}
-
-        {location.description && !isEditing && (
-          <p className="text-sm text-gray-700 mb-2 italic">&ldquo;{location.description}&rdquo;</p>
-        )}
-
-        {!isEditing && (
-          <div className="inline-block px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-            {LOCATION_TYPE_MAP[locationType] || '기타'}
-          </div>
-        )}
-
-        {/* 편집 모드일 경우 여행 내용 편집 기능 표시 */}
-        {isEditMode && !isEditing && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation(); // 버블링 방지
-              setIsEditing(true);
-            }}
-            className="text-sm text-blue-500 hover:text-blue-700 mb-2"
-          >
-            여행 내용 수정하기
-          </button>
         )}
 
         {/* 편집 화면 */}
@@ -126,7 +142,7 @@ const LocationItem: React.FC<LocationItemProps> = ({
               <label className="block text-xs font-medium text-gray-700 mb-1">여행지명</label>
               <input
                 type="text"
-                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                className="w-full p-1.5 border border-gray-300 rounded-md text-xs"
                 value={locationName}
                 onChange={(e) => setLocationName(e.target.value)}
                 placeholder="여행지명을 입력해주세요"
@@ -136,7 +152,7 @@ const LocationItem: React.FC<LocationItemProps> = ({
             <div className="mb-2">
               <label className="block text-xs font-medium text-gray-700 mb-1">장소 유형</label>
               <select
-                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                className="w-full p-1.5 border border-gray-300 rounded-md text-xs"
                 value={locType}
                 onChange={(e) => setLocType(Number(e.target.value))}
               >
@@ -151,7 +167,7 @@ const LocationItem: React.FC<LocationItemProps> = ({
                 <label className="block text-xs font-medium text-gray-700 mb-1">시작 시간</label>
                 <input
                   type="time"
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full p-1.5 border border-gray-300 rounded-md text-xs"
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
                 />
@@ -160,7 +176,7 @@ const LocationItem: React.FC<LocationItemProps> = ({
                 <label className="block text-xs font-medium text-gray-700 mb-1">종료 시간</label>
                 <input
                   type="time"
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full p-1.5 border border-gray-300 rounded-md text-xs"
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
                 />
@@ -170,11 +186,11 @@ const LocationItem: React.FC<LocationItemProps> = ({
             <div className="mb-2">
               <label className="block text-xs font-medium text-gray-700 mb-1">여행 내용</label>
               <textarea
-                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                className="w-full p-1.5 border border-gray-300 rounded-md text-xs"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="여행 내용을 작성해주세요"
-                rows={3}
+                rows={2}
               />
             </div>
 
@@ -182,9 +198,16 @@ const LocationItem: React.FC<LocationItemProps> = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  // 수정을 취소하고 원래 값으로 복원
+                  setLocationName(location.name);
+                  setStartTime(location.startTime);
+                  setEndTime(location.endTime);
+                  setDescription(location.description || '');
+                  setLocType(location.type);
+                  // 편집 모드 종료 (해당 여행지만)
                   setIsEditing(false);
                 }}
-                className="px-2 py-1 text-xs text-gray-600 bg-gray-100 rounded-md"
+                className="px-2 py-0.5 text-xs text-gray-600 bg-gray-100 rounded-md"
               >
                 취소
               </button>
@@ -199,13 +222,13 @@ const LocationItem: React.FC<LocationItemProps> = ({
                       startTime: startTime,
                       endTime: endTime,
                       description: description,
-                      type: locType
-                      // isModified 플래그를 유지하여 변경사항이 있었음을 계속 표시
+                      type: locType,
+                      isModified: false // 여행 내용을 수정하면 위치 수정됨 표시 제거
                     });
                   }
                   setIsEditing(false);
                 }}
-                className="px-2 py-1 text-xs text-white bg-blue-500 rounded-md"
+                className="px-2 py-0.5 text-xs text-white bg-blue-500 rounded-md"
               >
                 저장
               </button>
