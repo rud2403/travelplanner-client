@@ -1,4 +1,5 @@
 'use client';
+import { dispatchLocationUpdateEvent } from './event/LocationEvents';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTravelStore } from '@/store/useTravelStore';
@@ -24,6 +25,8 @@ const Planning = () => {
   const [markerTarget, setMarkerTarget] = useState<{dayIndex: number, callback: (lat: number, lng: number) => void} | null>(null);
   const [tempMarkerPosition, setTempMarkerPosition] = useState<{lat: number, lng: number} | null>(null);
   const [selectedMarkerPosition, setSelectedMarkerPosition] = useState<{lat: number, lng: number} | null>(null);
+  // 원본 데이터 백업 (수정 모드 취소 시 복원용)
+  const [originalDateLocations, setOriginalDateLocations] = useState<any[]>([]);
   const router = useRouter();
 
   const {
@@ -63,6 +66,9 @@ const Planning = () => {
     const handleClearSelectedMarker = () => {
       console.log('여행일정 추가 완료: 마커 제거');
       setSelectedMarkerPosition(null);
+      
+      // 전역 위치 상태 초기화 - 개선된 함수는 내부적으로 돌의 값을 검사하여 필요할 때만 업데이트
+      useTravelStore.getState().resetLocationState();
     };
     
     // 이벤트 리스너 등록
@@ -74,9 +80,29 @@ const Planning = () => {
     };
   }, []);
 
+  // 편집 모드 변경 시 위치 관련 상태 초기화
+  useEffect(() => {
+    // 수정 모드로 들어가거나 나올 때 모든 임시 위치 정보 초기화
+    setTempMarkerPosition(null);
+    setSelectedMarkerPosition(null);
+    
+    // 전역 상태 초기화 - 개선된 함수는 내부적으로 값 변경 필요 여부 확인
+    useTravelStore.getState().resetLocationState();
+    
+    // 문제가 되는 이전 위치 값들과 임시 마커 제거를 위한 이벤트 전파
+    const event = new CustomEvent('editModeChanged', { detail: { isEditMode } });
+    window.dispatchEvent(event);
+    
+    // 콘솔에 로그 추가
+    console.log('수정 모드 변경:', isEditMode, '위치 정보 초기화 완료');
+  }, [isEditMode]);
+
+
   // 날짜 선택 핸들러
   const handleDateClick = (date: number | null) => {
     setSelectedDate(date);
+    // preservedSelectedDate도 업데이트
+    useTravelStore.getState().setPreservedSelectedDate(date);
   };
 
   // 사이드바 토글 핸들러
@@ -91,22 +117,98 @@ const Planning = () => {
       handleSaveChanges();
     } else {
       // 수정 모드로 전환
+      if (!isEditMode) {
+        // 수정 모드 진입 시 원본 데이터 백업 - 딥 복사 사용
+        const deepCopy = JSON.parse(JSON.stringify(dateLocations));
+        setOriginalDateLocations(deepCopy);
+        console.log('원본 데이터 백업 완료:', deepCopy);
+      }
       setIsEditMode(!isEditMode);
       setHasChanges(false); // 변경사항 초기화
     }
   };
+
+  // 수정 내용 취소 핸들러
+  const handleCancelEdit = () => {
+    // 수정 내용이 있을 경우 확인
+    if (hasChanges) {
+      const confirmCancel = window.confirm('변경사항이 있습니다. 정말 취소하시겠습니까?');
+      if (!confirmCancel) {
+        return; // 취소 거부
+      }
+    }
+    
+    // 수정 모드 해제
+    setIsEditMode(false);
+    setHasChanges(false);
+    
+    // 임시 마커와 위경도 정보 초기화
+    setTempMarkerPosition(null);
+    setSelectedMarkerPosition(null);
+    setAddMarkerMode(false); // 마커 추가 모드도 비활성화
+    
+    // 원본 데이터로 복원
+    if (originalDateLocations.length > 0) {
+      console.log('원본 데이터로 복원:', originalDateLocations);
+      setDateLocations([...originalDateLocations]);
+    } else {
+      // 원본 데이터가 없는 경우 isModified 플래그만 제거
+      const updatedDateLocations = [...dateLocations];
+      updatedDateLocations.forEach((dayLocation: { locations: TravelLocation[] }) => {
+        dayLocation.locations.forEach(location => {
+          location.isModified = false; // 수정 모드에서 나갈 때 isModified 플래그 제거
+        });
+      });
+      setDateLocations(updatedDateLocations);
+    }
+    
+    // 전역 상태 초기화 - 개선된 함수는 내부적으로 필요한 계산 수행
+    useTravelStore.getState().resetLocationState();
+    
+    // 명시적으로 여행일정 추가 완료 이벤트 발생시켜 모든 마커 정리
+    const clearEvent = new CustomEvent('clearSelectedMarker');
+    window.dispatchEvent(clearEvent);
+    
+    // 콘솔에 로그 추가
+    console.log('취소 버튼 클릭: 위치 정보 초기화 완료');
+  };
   
   // 변경사항 저장 핸들러
   const handleSaveChanges = () => {
+    // 여행 계획 업데이트 API 호출 전에 isModified 플래그 제거
+    const updatedDateLocations = JSON.parse(JSON.stringify(dateLocations));
+    updatedDateLocations.forEach((dayLocation: { locations: TravelLocation[] }) => {
+      dayLocation.locations.forEach(location => {
+        location.isModified = false; // 저장 시 isModified 플래그 제거
+      });
+    });
+    setDateLocations(updatedDateLocations);
+
     // 여행 계획 업데이트 API 호출
     handleUpdatePlan();
     setIsEditMode(false);
     setHasChanges(false);
+    
+    // 임시 마커 정보 완전 초기화
+    setTempMarkerPosition(null);
+    setSelectedMarkerPosition(null);
+    setAddMarkerMode(false);
+    
+    // 전역 상태 초기화 - 개선된 함수는 내부적으로 필요한 계산 수행
+    useTravelStore.getState().resetLocationState();
+    
+    // 저장 완료 이벤트 전파
+    const clearEvent = new CustomEvent('clearSelectedMarker');
+    window.dispatchEvent(clearEvent);
+    
+    // 콘솔에 로그 추가
+    console.log('저장 버튼 클릭: 위치 정보 초기화 완료');
   };
   
   // 변경사항 발생 시 호출될 핸들러
   const handleChange = () => {
     if (isEditMode) {
+      // 변경사항 있음 표시
       setHasChanges(true);
     }
   };
@@ -114,14 +216,27 @@ const Planning = () => {
   // 새 여행 계획이 추가되었을 때도 호출될 핸들러
   useEffect(() => {
     if (isEditMode) {
+      // 변경 사항 있음 표시
       setHasChanges(true);
     }
   }, [dateLocations, isEditMode]);
   
+  // 데이터가 변경될 때 preservedSelectedDate를 기반으로 선택된 일차 복원
+  useEffect(() => {
+    // 저장된 일차 정보가 있는지 확인
+    const preservedDate = useTravelStore.getState().preservedSelectedDate;
+    if (preservedDate !== null && preservedDate !== selectedDate) {
+      console.log('저장된 일차 정보 복원:', preservedDate);
+      setSelectedDate(preservedDate);
+      // 복원 후 초기화
+      useTravelStore.getState().setPreservedSelectedDate(null);
+    }
+  }, [dateLocations, setSelectedDate, selectedDate]);
+  
   // 경로 정보 변경 핸들러
   const handleRouteChange = (updatedRoute: any, dayIndex: number, routeIndex: number) => {
     // 데이터 복사 및 위치 업데이트
-    const updatedDateLocations = [...dateLocations];
+    const updatedDateLocations = JSON.parse(JSON.stringify(dateLocations));
     
     // 경로 정보 업데이트
     if (updatedDateLocations[dayIndex] && updatedDateLocations[dayIndex].routes[routeIndex]) {
@@ -138,8 +253,8 @@ const Planning = () => {
   };
   
   const handleLocationContentChange = (updatedLocation: TravelLocation) => {
-    // 데이터 복사 및 위치 업데이트
-    const updatedDateLocations = [...dateLocations];
+    // 데이터 복사 및 위치 업데이트 - 딥 복사 활용
+    const updatedDateLocations = JSON.parse(JSON.stringify(dateLocations));
     
     // 여행 이름과 시작 시간으로 해당 위치 찾기 (모든 여행 계획에 대해 수정 가능)
     let locationUpdated = false;
@@ -159,26 +274,29 @@ const Planning = () => {
             // isModified 플래그는 그대로 유지
             isModified: location.isModified 
           };
-          
-          // 이름 변경 시 경로도 업데이트
+
+          // 이름 변경 시 경로도 업데이트 (모든 날짜의 경로를 확인)
           if (location.name !== updatedLocation.name) {
-            updatedDateLocations[i].routes.forEach((route, routeIndex) => {
-              if (route.fromLocation === location.name) {
-                updatedDateLocations[i].routes[routeIndex] = {
-                  ...route,
-                  fromLocation: updatedLocation.name
-                };
-              }
-              
-              if (route.toLocation === location.name) {
-                updatedDateLocations[i].routes[routeIndex] = {
-                  ...route, 
-                  toLocation: updatedLocation.name
-                };
-              }
+            const originalName = location.name; // 원래 이름 저장
+            // Assuming 'day' has a 'routes' array and 'route' has 'fromLocation'/'toLocation'
+            updatedDateLocations.forEach((day: { routes: any[] }, dayIdx: number) => { 
+              day.routes.forEach((route: { fromLocation: string, toLocation: string }, routeIndex: number) => {
+                if (route.fromLocation === originalName) {
+                  updatedDateLocations[dayIdx].routes[routeIndex] = {
+                    ...route,
+                    fromLocation: updatedLocation.name
+                  };
+                }
+                if (route.toLocation === originalName) {
+                  updatedDateLocations[dayIdx].routes[routeIndex] = {
+                    ...route,
+                    toLocation: updatedLocation.name
+                  };
+                }
+              });
             });
           }
-          
+
           locationUpdated = true;
           break;
         }
@@ -247,6 +365,9 @@ const Planning = () => {
 
   // 마커 추가 핸들러 (Map과 Timeline에서 호출됨)
   const handleAddMarker = (lat: number, lng: number, eventType?: string) => {
+    // 현재 선택된 일차 값 저장 (여기서도 먼저 저장)
+    const currentSelectedDate = selectedDate;
+    
     // 1. 마우스 이동 시
     if (eventType === 'move') {
       // 임시 마커 위치 업데이트
@@ -259,15 +380,53 @@ const Planning = () => {
     // 2. 버튼 클릭으로 마커 추가 모드 시작
     if (!eventType || eventType === 'button') {
       console.log('마커 추가 모드 시작');
-      // 이전 화면에서 마커 선택 중이었다면 초기화
-      useTravelStore.setState({ focusedLocation: null });
+      
+      // 이전에 저장된 임시 위치 정보 모두 삭제
+      setTempMarkerPosition(null);
+      setSelectedMarkerPosition(null);
+      
+      // 전역 상태 초기화 - 개선된 함수는 내부적으로 필요한 값만 초기화
+      useTravelStore.getState().resetLocationState();
+      
+      // 마커 추가 모드 시작
       setAddMarkerMode(true);
+      
+      // 콘솔에 로그 추가
+      console.log('마커 추가 모드 시작: 임시 위치 정보 초기화 완료');
       return;
     }
     
     // 3. 지도 클릭으로 마커 선택 완료
     if (eventType === 'click') {
       console.log('지도에서 위치 선택함:', lat, lng);
+      
+      // 기존 상태 초기화 후 새 임시 위치 저장
+      const travelStore = useTravelStore.getState();
+      
+      // 먼저 초기화 후 새 값 설정 - 개선된 함수 사용
+      travelStore.resetLocationState();
+      
+      // 새 임시 위치 정보 설정 - 이전 초기화 후 새로 설정하여 겹치지 않도록 별도 처리
+      setTimeout(() => {
+        travelStore.setTempSelectedLocation({
+          lat: lat,
+          lng: lng,
+          name: "",
+          type: 1,
+          startTime: "",
+          endTime: ""
+        });
+        
+        // preservedSelectedDate 설정 (일차 유지)
+        if (currentSelectedDate !== null) {
+          travelStore.setPreservedSelectedDate(currentSelectedDate);
+          console.log('선택된 일차 정보 유지됨:', currentSelectedDate);
+        }
+      }, 10);
+      
+      // 위치 선택 완료 이벤트 발생 - 구독자들에게 알림
+      console.log('상태 변경 관련 주요 이벤트 발생');
+      dispatchLocationUpdateEvent(lat, lng, currentSelectedDate);
       
       // 마커 추가 완료 처리
       setSelectedMarkerPosition({ lat, lng });
@@ -276,6 +435,15 @@ const Planning = () => {
       
       // 구성에서는 대부분 필요 없지만 호환성을 위해 유지
       setMarkerTarget(null);
+      
+      // 콘솔에 로그 추가
+      console.log('마커 선택 완료: 위치', lat, lng);
+      
+      // 임시 위치 정보가 제대로 설정되었는지 확인
+      setTimeout(() => {
+        const tempLocation = useTravelStore.getState().tempSelectedLocation;
+        console.log('위치 선택 후 tempSelectedLocation 확인:', tempLocation);
+      }, 100);
     }
   };
 
@@ -306,7 +474,8 @@ const Planning = () => {
         <SaveButton 
           onSave={!id ? handleSavePlan : undefined} 
           onExportExcel={handleExportExcel} 
-          onEdit={id ? toggleEditMode : undefined} 
+          onEdit={id ? toggleEditMode : undefined}
+          onCancelEdit={isEditMode ? handleCancelEdit : undefined} 
           isEditMode={isEditMode}
           timelineWidth={timelineWidth} 
           showSaveButton={!id} 
@@ -316,10 +485,10 @@ const Planning = () => {
         <div className="flex-grow flex flex-col md:flex-row rounded-2xl overflow-hidden shadow-xl border border-gray-100">
           {/* 타임라인 */}
           <section
-            className="w-full bg-gray-50 p-4 md:overflow-auto relative"
+            className="w-full bg-gray-50 md:overflow-hidden relative"
             style={{ flex: `0 0 ${timelineWidth}%` }}
           >
-            <div className="sticky top-4">
+            <div className="h-full overflow-auto p-4">
               <TimeLine
                 onRouteClick={handleRouteClick}
                 onRouteMouseEnter={handleRouteMouseEnter}
