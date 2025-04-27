@@ -1,5 +1,5 @@
 import React from 'react';
-import PickerModal from '@/components/modal/pickerModal';
+import PickerModal from '@/components/modal/PickerModal';
 
 interface PeopleAndBudgetModalProps {
   onClose: () => void;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import PickerModal from '@/components/modal/pickerModal';
+import PickerModal from '@/components/modal/PickerModal';
 import { travelLocations } from '@/data/travelLocations'; // 데이터 파일 임포트
 
 interface LocationPickerModalProps {

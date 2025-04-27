@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import PickerModal from '@/components/modal/pickerModal';
+import PickerModal from '@/components/modal/PickerModal';
 
 interface DatePickerModalProps {
   onClose: () => void;

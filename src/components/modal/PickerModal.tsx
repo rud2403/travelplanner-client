@@ -1,5 +1,5 @@
 import React from 'react';
-import CommonButton from '@/components/button/commonButton';
+import CommonButton from '@/components/button/CommonButton';
 
 interface PickerModalProps {
   title: string;

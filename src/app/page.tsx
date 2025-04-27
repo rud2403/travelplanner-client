@@ -3,8 +3,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import DatePickerModal from '@/containers/picker/datePicker';
-import LocationPickerModal from '@/containers/picker/locationPicker';
+import DatePickerModal from '@/containers/picker/DatePicker';
+import LocationPickerModal from '@/containers/picker/LocationPicker';
 import { callTravelPlanAPI } from '@/services/travelPlan';
 import { useTravelStore } from '@/store/useTravelStore';
 import 'react-calendar/dist/Calendar.css';
