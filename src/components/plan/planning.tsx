@@ -369,9 +369,9 @@ const Planning = () => {
     // 수정 모드이고 변경사항이 있을 때 페이지 이탈 방지
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isEditMode && hasChanges) {
+        const message = '변경된 내용이 저장되지 않습니다. 정말 떠나시겠습니까?';
         e.preventDefault();
-        e.returnValue = '변경된 내용이 저장되지 않습니다. 정말 떠나시겠습니까?';
-        return e.returnValue;
+        return message;
       }
     };
     

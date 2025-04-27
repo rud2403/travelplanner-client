@@ -373,7 +373,7 @@ const DayCard: React.FC<DayCardProps> = ({
                           setAddMarkerMode(false);
                         }
 
-                        // planning.tsx의 selectedMarkerPosition도 초기화해야 하지만
+                        // Planning.tsx의 selectedMarkerPosition도 초기화해야 하지만
                         // 직접 접근할 수 없으므로 window 객체 통해 이벤트 발생
                         const event = new CustomEvent('clearSelectedMarker');
                         window.dispatchEvent(event);
