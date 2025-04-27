@@ -225,76 +225,103 @@ const Planning = () => {
   useEffect(() => {
     // 저장된 일차 정보가 있는지 확인
     const preservedDate = useTravelStore.getState().preservedSelectedDate;
-    if (preservedDate !== null && preservedDate !== selectedDate) {
-      console.log('저장된 일차 정보 복원:', preservedDate);
-      setSelectedDate(preservedDate);
-      // 복원 후 초기화
-      useTravelStore.getState().setPreservedSelectedDate(null);
+    if (preservedDate !== null && selectedDate !== preservedDate) {
+      // 즉시 상태를 일괄 업데이트하여 화면 깜빡임 방지
+      console.log('저장된 일차 정보로 즉시 업데이트:', preservedDate);
+      useTravelStore.setState({
+        selectedDate: preservedDate,
+        preservedSelectedDate: null
+      });
     }
-  }, [dateLocations, setSelectedDate, selectedDate]);
+  }, [dateLocations, selectedDate]);
   
   // 경로 정보 변경 핸들러
   const handleRouteChange = (updatedRoute: any, dayIndex: number, routeIndex: number) => {
-    // 데이터 복사 및 위치 업데이트
-    const updatedDateLocations = JSON.parse(JSON.stringify(dateLocations));
+    // 현재 selectedDate 값을 저장
+    const currentSelectedDate = selectedDate;
     
-    // 경로 정보 업데이트
-    if (updatedDateLocations[dayIndex] && updatedDateLocations[dayIndex].routes[routeIndex]) {
-      updatedDateLocations[dayIndex].routes[routeIndex] = updatedRoute;
+    if (dayIndex >= 0 && routeIndex >= 0) {
+      // 딥 복사를 통해 불변성 유지
+      const updatedDateLocations = JSON.parse(JSON.stringify(dateLocations));
       
-      // Zustand 스토어 업데이트
-      setDateLocations(updatedDateLocations);
-      
-      // 변경사항 있음을 알림
-      setHasChanges(true);
+      // 해당 일차와 경로의 인덱스가 유효한지 확인
+      if (updatedDateLocations[dayIndex] && updatedDateLocations[dayIndex].routes && 
+          updatedDateLocations[dayIndex].routes[routeIndex]) {
+        // 경로 정보 업데이트
+        updatedDateLocations[dayIndex].routes[routeIndex] = {
+          ...updatedRoute
+        };
+        
+        // 전체 데이터 업데이트 - 하나의 업데이트로 병합하여 화면 깜빡임 방지
+        useTravelStore.setState({
+          dateLocations: updatedDateLocations,
+          selectedDate: currentSelectedDate
+        });
+        
+        // 변경사항이 있음을 기록
+        setHasChanges(true);
+      }
       
       console.log('경로 정보 업데이트:', updatedRoute);
     }
   };
   
   const handleLocationContentChange = (updatedLocation: TravelLocation) => {
+    // 현재 선택된 일차 값 저장
+    const currentSelectedDate = selectedDate;
+    
     // 데이터 복사 및 위치 업데이트 - 딥 복사 활용
     const updatedDateLocations = JSON.parse(JSON.stringify(dateLocations));
     
-    // 여행 이름과 시작 시간으로 해당 위치 찾기 (모든 여행 계획에 대해 수정 가능)
+    // 여행 이름과 시작 시간으로 해당 위치 찾기
     let locationUpdated = false;
     
-    // 모든 날짜와 위치를 순회하며 찾기
-    for (let i = 0; i < updatedDateLocations.length; i++) {
-      for (let j = 0; j < updatedDateLocations[i].locations.length; j++) {
-        const location = updatedDateLocations[i].locations[j];
+    // 선택한 날짜가 있다면 해당 날짜의 위치만 업데이트, 없으면 전체 검색
+    const daysToUpdate = currentSelectedDate !== null 
+                        ? [currentSelectedDate]  // 선택된 날짜만 업데이트
+                        : Array.from({ length: updatedDateLocations.length }, (_, i) => i); // 전체 날짜
+    
+    // 특정 일차만 찾아서 처리
+    for (const dayIndex of daysToUpdate) {
+      const dayLocations = updatedDateLocations[dayIndex]?.locations;
+      if (!dayLocations) continue;
+      
+      for (let j = 0; j < dayLocations.length; j++) {
+        const location = dayLocations[j];
         
         // 같은 위치에 있는 여행인지 확인 - 경도/위도나 ID 등으로 비교
         if (Math.abs(location.lat - updatedLocation.lat) < 0.0001 && 
             Math.abs(location.lng - updatedLocation.lng) < 0.0001) {
             
           // 여행 정보 업데이트
-          updatedDateLocations[i].locations[j] = {
+          updatedDateLocations[dayIndex].locations[j] = {
             ...updatedLocation,
             // isModified 플래그는 그대로 유지
             isModified: location.isModified 
           };
 
-          // 이름 변경 시 경로도 업데이트 (모든 날짜의 경로를 확인)
+          // 이름 변경 시 경로도 업데이트 (변경된 날짜의 경로만 업데이트)
           if (location.name !== updatedLocation.name) {
             const originalName = location.name; // 원래 이름 저장
-            // Assuming 'day' has a 'routes' array and 'route' has 'fromLocation'/'toLocation'
-            updatedDateLocations.forEach((day: { routes: any[] }, dayIdx: number) => { 
-              day.routes.forEach((route: { fromLocation: string, toLocation: string }, routeIndex: number) => {
-                if (route.fromLocation === originalName) {
-                  updatedDateLocations[dayIdx].routes[routeIndex] = {
-                    ...route,
-                    fromLocation: updatedLocation.name
-                  };
-                }
-                if (route.toLocation === originalName) {
-                  updatedDateLocations[dayIdx].routes[routeIndex] = {
-                    ...route,
-                    toLocation: updatedLocation.name
-                  };
-                }
-              });
-            });
+            
+            // 해당 날짜의 경로만 업데이트
+            const routes = updatedDateLocations[dayIndex].routes;
+            for (let routeIndex = 0; routeIndex < routes.length; routeIndex++) {
+              const route = routes[routeIndex];
+              
+              if (route.fromLocation === originalName) {
+                updatedDateLocations[dayIndex].routes[routeIndex] = {
+                  ...route,
+                  fromLocation: updatedLocation.name
+                };
+              }
+              if (route.toLocation === originalName) {
+                updatedDateLocations[dayIndex].routes[routeIndex] = {
+                  ...route,
+                  toLocation: updatedLocation.name
+                };
+              }
+            }
           }
 
           locationUpdated = true;
@@ -305,8 +332,12 @@ const Planning = () => {
       if (locationUpdated) break;
     }
     
-    // Zustand 스토어 업데이트
-    setDateLocations(updatedDateLocations);
+    // Zustand 스토어 업데이트 - 하나의 업데이트로 병합하여 화면 깜빡임 방지
+    // 데이터 변경 시 selectedDate 유지하도록 함께 설정
+    useTravelStore.setState({
+      dateLocations: updatedDateLocations,
+      selectedDate: currentSelectedDate
+    });
     
     // 변경사항 있음을 알림
     setHasChanges(true);

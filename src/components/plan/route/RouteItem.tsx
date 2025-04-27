@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { TravelRoute } from '@/types/travel';
 import { TRANSPORT_TYPE_MAP, TRANSPORT_ICON_PATHS } from '../common/constants';
+import { useTravelStore } from '@/store/useTravelStore';
 
 interface RouteItemProps {
   route: TravelRoute;
@@ -85,6 +86,9 @@ const RouteItem: React.FC<RouteItemProps> = ({
   // 경로 변경 함수
   const handleSaveRouteChanges = () => {
     if (onRouteChange) {
+      // 현재 selectedDate 값을 저장
+      const currentSelectedDate = useTravelStore.getState().selectedDate;
+      
       const updatedRoute = {
         ...route,
         transportationType: transportType,
@@ -92,6 +96,11 @@ const RouteItem: React.FC<RouteItemProps> = ({
         time: transportMinutes.toString()
       };
       onRouteChange(updatedRoute, dayIndex, routeIndex);
+      
+      // 우선 preservedSelectedDate도 설정하여 이후 처리에서 사용되도록 함
+      useTravelStore.setState({
+        preservedSelectedDate: currentSelectedDate
+      });
     }
     setIsEditing(false);
   };
