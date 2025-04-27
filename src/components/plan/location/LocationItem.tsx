@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { TravelLocation } from '@/types/travel';
 import { LOCATION_TYPE_MAP, LOCATION_TYPE_STYLES } from '../common/constants';
+import { useTravelStore } from '@/store/useTravelStore';
 
 interface LocationItemProps {
   location: TravelLocation;
@@ -215,6 +216,9 @@ const LocationItem: React.FC<LocationItemProps> = ({
                 onClick={(e) => {
                   e.stopPropagation();
                   if (onContentChange) {
+                    // 현재 selectedDate 값을 저장
+                    const currentSelectedDate = useTravelStore.getState().selectedDate;
+                    
                     // 수정된 내용으로 업데이트하고 isModified 플래그 제거
                     onContentChange({
                       ...location,
@@ -224,6 +228,11 @@ const LocationItem: React.FC<LocationItemProps> = ({
                       description: description,
                       type: locType,
                       isModified: false // 여행 내용을 수정하면 위치 수정됨 표시 제거
+                    });
+                    
+                    // 우선 preservedSelectedDate도 설정하여 이후 처리에서 사용되도록 함
+                    useTravelStore.setState({
+                      preservedSelectedDate: currentSelectedDate
                     });
                   }
                   setIsEditing(false);

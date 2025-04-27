@@ -45,13 +45,13 @@ const DayCard: React.FC<DayCardProps> = ({
   // 새 장소 정보를 위한 상태
   const [newLocation, setNewLocation] = useState<Partial<TravelLocation>>({});
   const { setDateLocations, dateLocations } = useTravelStore();
-  
+
   // 위치 업데이트 이벤트 구독
   useEffect(() => {
     // 위치 업데이트 이벤트 핸들러
     const handleLocationUpdate = (event: CustomEvent<LocationUpdateEvent>) => {
       const { lat, lng, selectedDate } = event.detail;
-      
+
       // 현재 일차에 해당하는 경우에만 처리
       if (selectedDate === null || selectedDate === dayIndex) {
         // 새 위치 정보 설정
@@ -60,36 +60,36 @@ const DayCard: React.FC<DayCardProps> = ({
           lat,
           lng
         }));
-        
+
         // 입력 폼 활성화
         if (!isAddingLocation) {
           setIsAddingLocation(true);
         }
       }
     };
-    
+
     // 이벤트 리스너 등록
     const cleanup = addLocationUpdateListener(handleLocationUpdate);
-    
+
     // 구독 해제
     return cleanup;
   }, [dayIndex, isAddingLocation]);
-  
+
   // 컴포넌트 마운트/언마운트 시 임시 위치 정보 초기화
   useEffect(() => {
     // 새 위치 정보 초기화
     setNewLocation({});
-    
+
     // 전역 상태의 임시 위치 정보도 초기화
     useTravelStore.getState().resetLocationState();
-    
+
     // 컴포넌트 언마운트 시 임시 위치 정보 초기화
     return () => {
       // 전역 상태의 임시 위치 정보 초기화
       useTravelStore.getState().resetLocationState();
     };
   }, []);
-  
+
   // 수정 모드 변경 및 마커 추가 모드가 끝나면 위치 정보 업데이트
   useEffect(() => {
     // 1. 수정 모드가 비활성화될 때는 반드시 새 위치 정보 초기화
@@ -98,20 +98,20 @@ const DayCard: React.FC<DayCardProps> = ({
       setNewLocation({});
       return;
     }
-    
+
     // 2. 수정 모드가 활성화될 때도 새 위치 정보 초기화 (수정 모드 진입 시)
     if (isEditMode) {
       setNewLocation({});
     }
   }, [isEditMode]);
-  
+
   // 마커 추가 모드가 끝나면 위치 정보 업데이트
   useEffect(() => {
     // 마커 추가 모드가 false로 변할 때만 체크
     if (addMarkerMode === false) {
       // 전역 상태에서 위치 가져오기 - tempSelectedLocation 사용
       const markerLocation = useTravelStore.getState().tempSelectedLocation;
-      
+
       // 선택된 위치가 있을 경우에만 위경도 정보 업데이트
       if (markerLocation && markerLocation.lat && markerLocation.lng) {
         // 새 위치 정보 설정 - 기존 정보 유지하면서 위경도만 업데이트
@@ -120,7 +120,7 @@ const DayCard: React.FC<DayCardProps> = ({
           lat: markerLocation.lat,
           lng: markerLocation.lng
         }));
-        
+
         // isAddingLocation을 true로 설정하여 입력 폼 표시
         if (!isAddingLocation) {
           setIsAddingLocation(true);
@@ -128,14 +128,14 @@ const DayCard: React.FC<DayCardProps> = ({
       }
     }
   }, [addMarkerMode, isAddingLocation]);
-  
+
   // 전역 tempSelectedLocation 변경을 감지하여 위치 정보 업데이트
   // 무한 루프 방지를 위해 구독 제거
   useEffect(() => {
     // 임시 위치 변경 감지는 이제 이벤트 시스템을 통해 수행
-    return () => {};
+    return () => { };
   }, [dayIndex]);
-  
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-xl min-w-[320px] max-h-[calc(100vh-200px)] flex flex-col border border-gray-100 hover:border-blue-200 transition-all duration-300">
       <div className="mb-6">
@@ -175,7 +175,7 @@ const DayCard: React.FC<DayCardProps> = ({
             )}
           </React.Fragment>
         ))}
-        
+
         {/* 여행 계획 추가 버튼 및 폼 */}
         {isEditMode && (
           <li className="p-4 rounded-lg border-2 border-dashed border-blue-300 hover:border-blue-500 transition-all duration-300">
@@ -193,38 +193,7 @@ const DayCard: React.FC<DayCardProps> = ({
               <div className="p-2">
                 <h3 className="text-sm font-bold text-gray-700 mb-2">새 여행 계획 추가</h3>
                 <div className="space-y-2">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">장소명</label>
-                    <input
-                      type="text"
-                      className="w-full p-1.5 border border-gray-300 rounded-md text-xs"
-                      value={newLocation.name || ''}
-                      onChange={(e) => setNewLocation({...newLocation, name: e.target.value})}
-                      placeholder="장소명을 입력하세요"
-                    />
-                  </div>
-                  
-                  <div className="flex space-x-2">
-                    <div className="flex-1">
-                      <label className="block text-xs font-medium text-gray-700 mb-1">시작 시간</label>
-                      <input
-                        type="time"
-                        className="w-full p-1.5 border border-gray-300 rounded-md text-xs"
-                        value={newLocation.startTime || ''}
-                        onChange={(e) => setNewLocation({...newLocation, startTime: e.target.value})}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-xs font-medium text-gray-700 mb-1">종료 시간</label>
-                      <input
-                        type="time"
-                        className="w-full p-1.5 border border-gray-300 rounded-md text-xs"
-                        value={newLocation.endTime || ''}
-                        onChange={(e) => setNewLocation({...newLocation, endTime: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                  
+
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">위치</label>
                     <div className="flex space-x-1">
@@ -247,10 +216,10 @@ const DayCard: React.FC<DayCardProps> = ({
                         onClick={() => {
                           // 사용자가 이미 위치를 선택했다면 초기화
                           setNewLocation({});
-                          
+
                           // 전역 상태의 임시 위치 정보도 확실히 초기화
                           useTravelStore.getState().resetLocationState();
-                          
+
                           // 마커 추가 모드 활성화
                           if (onAddMarker && setAddMarkerMode) {
                             console.log('마커 추가 모드 시작 - DayCard');
@@ -268,37 +237,69 @@ const DayCard: React.FC<DayCardProps> = ({
                       </button>
                     </div>
                   </div>
-                  
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">장소명</label>
+                    <input
+                      type="text"
+                      className="w-full p-1.5 border border-gray-300 rounded-md text-xs"
+                      value={newLocation.name || ''}
+                      onChange={(e) => setNewLocation({ ...newLocation, name: e.target.value })}
+                      placeholder="장소명을 입력하세요"
+                    />
+                  </div>
+
+                  <div className="flex space-x-2">
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">시작 시간</label>
+                      <input
+                        type="time"
+                        className="w-full p-1.5 border border-gray-300 rounded-md text-xs"
+                        value={newLocation.startTime || ''}
+                        onChange={(e) => setNewLocation({ ...newLocation, startTime: e.target.value })}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">종료 시간</label>
+                      <input
+                        type="time"
+                        className="w-full p-1.5 border border-gray-300 rounded-md text-xs"
+                        value={newLocation.endTime || ''}
+                        onChange={(e) => setNewLocation({ ...newLocation, endTime: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">장소 유형</label>
                     <select
                       className="w-full p-1.5 border border-gray-300 rounded-md text-xs"
                       value={newLocation.type || 1}
-                      onChange={(e) => setNewLocation({...newLocation, type: parseInt(e.target.value)})}
+                      onChange={(e) => setNewLocation({ ...newLocation, type: parseInt(e.target.value) })}
                     >
                       {Object.entries(LOCATION_TYPE_MAP).map(([key, value]) => (
                         <option key={key} value={key}>{value}</option>
                       ))}
                     </select>
                   </div>
-                  
+
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">설명</label>
                     <textarea
                       className="w-full p-1.5 border border-gray-300 rounded-md text-xs"
                       value={newLocation.description || ''}
-                      onChange={(e) => setNewLocation({...newLocation, description: e.target.value})}
+                      onChange={(e) => setNewLocation({ ...newLocation, description: e.target.value })}
                       placeholder="장소에 대한 설명을 입력하세요"
                       rows={2}
                     />
                   </div>
-                  
+
                   <div className="flex justify-end space-x-2 pt-1">
                     <button
                       onClick={() => {
                         setIsAddingLocation(false);
                         setNewLocation({});
-                        
+
                         // 임시 위치 정보 초기화
                         useTravelStore.getState().resetLocationState();
                       }}
@@ -309,12 +310,12 @@ const DayCard: React.FC<DayCardProps> = ({
                     <button
                       onClick={() => {
                         // 필수 필드 검증
-                        if (!newLocation.name || !newLocation.startTime || !newLocation.endTime || 
-                            newLocation.lat === undefined || newLocation.lng === undefined) {
+                        if (!newLocation.name || !newLocation.startTime || !newLocation.endTime ||
+                          newLocation.lat === undefined || newLocation.lng === undefined) {
                           alert('모든 필수 항목을 입력해주세요');
                           return;
                         }
-                        
+
                         // 새 여행 계획 추가 처리
                         const updatedDateLocations = [...dateLocations];
                         const newFullLocation: TravelLocation = {
@@ -327,14 +328,14 @@ const DayCard: React.FC<DayCardProps> = ({
                           endTime: newLocation.endTime || '10:00',
                           isModified: true
                         };
-                        
+
                         // 로케이션 추가
                         updatedDateLocations[dayIndex].locations.push(newFullLocation);
-                        
+
                         // 이전 장소가 있으면 경로 추가
                         if (updatedDateLocations[dayIndex].locations.length > 1) {
                           const prevLocation = updatedDateLocations[dayIndex].locations[updatedDateLocations[dayIndex].locations.length - 2];
-                          
+
                           // 새 경로 생성
                           const newRoute: TravelRoute = {
                             fromLocation: prevLocation.name,
@@ -343,14 +344,14 @@ const DayCard: React.FC<DayCardProps> = ({
                             method: 1,
                             time: '30' // 기본 30분
                           };
-                          
+
                           // 경로 추가
                           updatedDateLocations[dayIndex].routes.push(newRoute);
                         }
-                        
+
                         // 저장
                         setDateLocations(updatedDateLocations);
-                        
+
                         // selectedDate 복원 (마커 이동 시 일차 정보 초기화 방지)
                         const currentSelectedDate = useTravelStore.getState().selectedDate;
                         if (currentSelectedDate !== null) {
@@ -359,19 +360,19 @@ const DayCard: React.FC<DayCardProps> = ({
                           }, 0);
                         }
                         setIsAddingLocation(false);
-                        
+
                         // 새 위치 정보 초기화
                         setNewLocation({});
-                        
+
                         // 포커스된 위치와 임시 위치 초기화 - 개선된 초기화 함수 사용
                         useTravelStore.getState().resetLocationState();
                         console.log('임시 위치 정보 초기화 완료 - 추가하기 버튼');
-                        
+
                         // 마커 추가 모드 비활성화
                         if (setAddMarkerMode) {
                           setAddMarkerMode(false);
                         }
-                        
+
                         // planning.tsx의 selectedMarkerPosition도 초기화해야 하지만
                         // 직접 접근할 수 없으므로 window 객체 통해 이벤트 발생
                         const event = new CustomEvent('clearSelectedMarker');
