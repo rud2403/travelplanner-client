@@ -11,6 +11,8 @@ export interface TravelLocation {
   endTime: string;
   country?: string; // 원래 타입과 호환되도록 추가
   isModified?: boolean; // 위치 수정 여부
+  dateId?: number; // 날짜 ID 추가
+  id?: number; // 위치 ID 추가
 }
 
 /**
@@ -22,6 +24,8 @@ export interface TravelRoute {
   transportationType?: number; // 선택사항으로 변경
   method?: number; // 기존 타입과 호환을 위해 추가
   time?: string; // 기존 타입과 호환을 위해 추가
+  dateId?: number; // 날짜 ID 추가
+  id?: number; // 경로 ID 추가
 }
 
 /**
@@ -32,6 +36,7 @@ export interface TravelPlan {
   tripIndex: number;
   locations: TravelLocation[];
   routes: TravelRoute[];
+  id?: number; // 날짜 ID 추가
 }
 
 /**

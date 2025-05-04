@@ -41,6 +41,7 @@ const UserPlanPage = () => {
     const {
         setId,
         setDestination,
+        setCountry,
         setDescription,
         setStartDate,
         setEndDate,
@@ -121,31 +122,46 @@ const UserPlanPage = () => {
                 // 기본 정보 Zustand 스토어에 설정
                 setId(tripData.id);
                 setDestination(tripData.destination);
+                setCountry(tripData.country);
                 setDescription(tripData.description);
                 setStartDate(tripData.startDate);
                 setEndDate(tripData.endDate);
 
                 // 데이터가 있는 경우 경로 변환
                 if (tripData.dates && Array.isArray(tripData.dates)) {
-                const processedDates = tripData.dates.map((date: any) => ({
-                    ...date,
-                    routes: date.routes ? date.routes.map((route: any) => {
-                        // method가 있는 원래 형식의 경우
-                        if(route.method) {
-                            return convertRouteToTravelRoute(route);
-                        }
-                        // transportationType이 있는 새 형식의 경우
-                        return route;
-                    }) : []
-                }));
-                
+                    const processedDates = tripData.dates.map((date: any) => ({
+                        ...date,
+                        routes: date.routes ? date.routes.map((route: any) => {
+                            // 기존 id 값이 있으면 반드시 보존
+                            const routeId = route.id;
+                            
+                            // method가 있는 원래 형식의 경우
+                            if(route.method) {
+                                // 변환된 route에 원본 id를 보존
+                                const convertedRoute = convertRouteToTravelRoute(route);
+                                return {
+                                    ...convertedRoute,
+                                    id: routeId, // 원본 id 유지
+                                    dateId: date.id // dateId 추가
+                                };
+                            }
+                            
+                            // transportationType이 있는 새 형식의 경우
+                            return {
+                                ...route,
+                                id: routeId, // 명시적으로 id 유지
+                                dateId: date.id // dateId 추가
+                            };
+                        }) : []
+                    }));
+                    
                     // Zustand 스토어에 직접 저장
                     setDateLocations(processedDates);
                     console.log('처리된 여행 일정 데이터 저장 완료, 페이지 이동 준비');
 
                     // 데이터가 완전히 준비된 후 페이지 이동
-                router.push('/plan');
-            } else {
+                    router.push('/plan');
+                } else {
                     console.error('여행 일정 데이터가 없습니다.');
                     setIsTripLoadErrorModalOpen(true);
                 }

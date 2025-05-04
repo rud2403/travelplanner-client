@@ -237,6 +237,7 @@ const Planning = () => {
   
   // 경로 정보 변경 핸들러
   const handleRouteChange = (updatedRoute: any, dayIndex: number, routeIndex: number) => {
+    console.log('경로 정보 변경 핸들러 호출:', updatedRoute, dayIndex, routeIndex);
     // 현재 selectedDate 값을 저장
     const currentSelectedDate = selectedDate;
     
@@ -248,8 +249,12 @@ const Planning = () => {
       if (updatedDateLocations[dayIndex] && updatedDateLocations[dayIndex].routes && 
           updatedDateLocations[dayIndex].routes[routeIndex]) {
         // 경로 정보 업데이트
+        const existingRouteId = updatedDateLocations[dayIndex].routes[routeIndex].id; 
+        
         updatedDateLocations[dayIndex].routes[routeIndex] = {
-          ...updatedRoute
+          ...updatedRoute,
+          dateId: updatedDateLocations[dayIndex].id,
+          id: existingRouteId || 0 // 기존 id가 없으면 0으로 설정하여 백엔드가 처리하도록 함
         };
         
         // 전체 데이터 업데이트 - 하나의 업데이트로 병합하여 화면 깜빡임 방지
@@ -309,16 +314,23 @@ const Planning = () => {
             for (let routeIndex = 0; routeIndex < routes.length; routeIndex++) {
               const route = routes[routeIndex];
               
+              // 반드시 원본 route의 id 값을 명시적으로 유지
+              const routeId = route.id || 0; // id가 없으면 0으로 설정
+              
               if (route.fromLocation === originalName) {
                 updatedDateLocations[dayIndex].routes[routeIndex] = {
                   ...route,
-                  fromLocation: updatedLocation.name
+                  fromLocation: updatedLocation.name,
+                  dateId: updatedDateLocations[dayIndex].id,
+                  id: routeId // 명시적으로 id 값 유지 (0 포함)
                 };
               }
               if (route.toLocation === originalName) {
                 updatedDateLocations[dayIndex].routes[routeIndex] = {
                   ...route,
-                  toLocation: updatedLocation.name
+                  toLocation: updatedLocation.name,
+                  dateId: updatedDateLocations[dayIndex].id,
+                  id: routeId // 명시적으로 id 값 유지 (0 포함)
                 };
               }
             }

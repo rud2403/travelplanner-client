@@ -93,7 +93,9 @@ const RouteItem: React.FC<RouteItemProps> = ({
         ...route,
         transportationType: transportType,
         method: transportType, // 이전 속성과의 호환성을 위해 양쪽 다 업데이트
-        time: transportMinutes.toString()
+        time: transportMinutes.toString(),
+        dateId: route.dateId || useTravelStore.getState().dateLocations[dayIndex]?.id,
+        id: route.id || 0 // id가 없으면 0으로 설정하여 백엔드가 처리하도록 함
       };
       onRouteChange(updatedRoute, dayIndex, routeIndex);
       
