@@ -46,8 +46,28 @@ const Timeline: React.FC<TimelineProps> = ({
     );
   }
 
-  // 선택한 날짜가 있으면 해당 날짜만, 없으면 전체 날짜 표시
-  const displayLocations = selectedDate !== null ? [dateLocations[selectedDate]] : dateLocations;
+  // 선택한 날짜가 유효한지 확인
+  const isValidSelectedDate = selectedDate !== null && 
+                             selectedDate >= 0 && 
+                             selectedDate < dateLocations.length &&
+                             dateLocations[selectedDate] !== undefined;
+  
+  // 표시할 데이터 결정 및 유효성 확인
+  let displayLocations = isValidSelectedDate ? 
+                        [dateLocations[selectedDate]] : 
+                        dateLocations;
+  
+  // 추가 안전장치: 배열에 undefined 요소가 있는지 확인하고 필터링
+  displayLocations = displayLocations.filter(item => item !== undefined);
+  
+  // 여전히 표시할 데이터가 없는 경우 빈 배열로 설정
+  if (!displayLocations || displayLocations.length === 0) {
+    return (
+      <div className="flex items-center justify-center p-8 bg-white rounded-lg shadow-md">
+        <p className="text-gray-600 text-lg font-medium">표시할 일정이 없습니다.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex space-x-6">
@@ -70,26 +90,45 @@ const Timeline: React.FC<TimelineProps> = ({
         }
       `}</style>
 
-      {displayLocations.map((dateLocation, dateIndex) => (
-        <DayCard
-          key={dateLocation.date}
-          dateLocation={dateLocation}
-          dayIndex={selectedDate !== null ? selectedDate : dateIndex}
-          color={colors[selectedDate ?? dateIndex]}
-          onRouteClick={onRouteClick}
-          onRouteMouseEnter={onRouteMouseEnter}
-          onRouteMouseLeave={onRouteMouseLeave}
-          onLocationMouseEnter={onLocationMouseEnter}
-          onLocationMouseLeave={onLocationMouseLeave}
-          onLocationClick={onLocationClick}
-          isEditMode={isEditMode}
-          onLocationContentChange={onLocationContentChange}
-          onRouteChange={onRouteChange}
-          addMarkerMode={addMarkerMode}
-          setAddMarkerMode={setAddMarkerMode}
-          onAddMarker={onAddMarker}
-        />
-      ))}
+      {displayLocations.map((dateLocation, dateIndex) => {
+        // dateLocation이 undefined인 경우 빈 요소를 반환
+        if (!dateLocation) return null;
+        
+        // 필요한 모든 속성에 대한 안전 체크 (undefined인 경우 기본값 제공)
+        const safeDateLocation = {
+          ...dateLocation,
+          date: dateLocation.date || `unknown-date-${dateIndex}`,
+          locations: Array.isArray(dateLocation.locations) ? dateLocation.locations : [],
+          routes: Array.isArray(dateLocation.routes) ? dateLocation.routes : []
+        };
+        
+        // 유효한 일차 인덱스 계산
+        const dayIdx = selectedDate !== null ? selectedDate : dateIndex;
+        // 유효한 색상 인덱스 계산 (colors 배열 범위를 벗어나지 않도록)
+        const colorIdx = selectedDate ?? dateIndex;
+        const safeColor = colors[colorIdx] || '#000000';
+        
+        return (
+          <DayCard
+            key={safeDateLocation.date}
+            dateLocation={safeDateLocation}
+            dayIndex={dayIdx}
+            color={safeColor}
+            onRouteClick={onRouteClick}
+            onRouteMouseEnter={onRouteMouseEnter}
+            onRouteMouseLeave={onRouteMouseLeave}
+            onLocationMouseEnter={onLocationMouseEnter}
+            onLocationMouseLeave={onLocationMouseLeave}
+            onLocationClick={onLocationClick}
+            isEditMode={isEditMode}
+            onLocationContentChange={onLocationContentChange}
+            onRouteChange={onRouteChange}
+            addMarkerMode={addMarkerMode}
+            setAddMarkerMode={setAddMarkerMode}
+            onAddMarker={onAddMarker}
+          />
+        );
+      })}
     </div>
   );
 };

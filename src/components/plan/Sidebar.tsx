@@ -9,6 +9,8 @@ interface SidebarProps {
   selectedDate: number | null;
   dateLocations: typeof travelPlanData;
   onDateClick: (date: number | null) => void;
+  isEditMode?: boolean;
+  onAddNewDay?: () => void;
 }
 
 /**
@@ -18,8 +20,13 @@ const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   selectedDate,
   dateLocations,
-  onDateClick
+  onDateClick,
+  isEditMode = false,
+  onAddNewDay
 }) => {
+  // 디버깅용 콘솔 로그 추가
+  console.log('Sidebar 렌더링:', { isEditMode, hasAddNewDay: !!onAddNewDay });
+  
   return (
     <aside
       className={`
@@ -71,6 +78,25 @@ const Sidebar: React.FC<SidebarProps> = ({
             {index + 1}일차
           </DateButton>
         ))}
+        
+        {/* 일차 추가 버튼 (수정 모드에서만 보이도록) */}
+        {isEditMode && onAddNewDay && (
+          <button
+            onClick={onAddNewDay}
+            className="mt-4 flex items-center justify-center py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className="h-5 w-5 mr-2" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            일차 추가
+          </button>
+        )}
       </nav>
     </aside>
   );
