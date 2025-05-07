@@ -113,7 +113,19 @@ const Planning = () => {
   // 수정 모드 토글 핸들러
   const toggleEditMode = () => {
     if (isEditMode && hasChanges) {
-      // 수정 모드에서 변경사항이 있는 경우 저장 진행
+      // 수정 모드에서 변경사항이 있는 경우 저장하기 전에 빈 일차 검사
+      const emptyDayIndex = dateLocations.findIndex(day => 
+        day.locations.length === 0
+      );
+
+      if (emptyDayIndex !== -1) {
+        alert(`${emptyDayIndex + 1}일차가 비어 있습니다. 모든 일차에 최소한 하나 이상의 일정을 추가해 주세요.`);
+        // 비어 있는 일차로 선택 변경
+        setSelectedDate(emptyDayIndex);
+        return;
+      }
+      
+      // 저장 진행
       handleSaveChanges();
     } else {
       // 수정 모드로 전환
@@ -123,7 +135,9 @@ const Planning = () => {
         setOriginalDateLocations(deepCopy);
         console.log('원본 데이터 백업 완료:', deepCopy);
       }
-      setIsEditMode(!isEditMode);
+      const newEditMode = !isEditMode;
+      setIsEditMode(newEditMode);
+      console.log('수정 모드 변경됨:', newEditMode); // 수정 모드 변경 로그 추가
       setHasChanges(false); // 변경사항 초기화
     }
   };
@@ -151,6 +165,9 @@ const Planning = () => {
     if (originalDateLocations.length > 0) {
       console.log('원본 데이터로 복원:', originalDateLocations);
       setDateLocations([...originalDateLocations]);
+      
+      // 전체 일정 탭으로 이동 (selectedDate = null)
+      setSelectedDate(null);
     } else {
       // 원본 데이터가 없는 경우 isModified 플래그만 제거
       const updatedDateLocations = [...dateLocations];
@@ -160,6 +177,9 @@ const Planning = () => {
         });
       });
       setDateLocations(updatedDateLocations);
+      
+      // 전체 일정 탭으로 이동
+      setSelectedDate(null);
     }
     
     // 전역 상태 초기화 - 개선된 함수는 내부적으로 필요한 계산 수행
@@ -170,11 +190,24 @@ const Planning = () => {
     window.dispatchEvent(clearEvent);
     
     // 콘솔에 로그 추가
-    console.log('취소 버튼 클릭: 위치 정보 초기화 완료');
+    console.log('취소 버튼 클릭: 위치 정보 초기화 완료, 전체 일정 탭으로 이동');
   };
   
   // 변경사항 저장 핸들러
   const handleSaveChanges = () => {
+    // 저장 전 비어있는 일차가 있는지 확인
+    const emptyDayIndex = dateLocations.findIndex(day => 
+      day.locations.length === 0
+    );
+
+    // 비어있는 일차가 있으면 저장 제한
+    if (emptyDayIndex !== -1) {
+      alert(`${emptyDayIndex + 1}일차가 비어 있습니다. 모든 일차에 최소한 하나 이상의 일정을 추가해 주세요.`);
+      // 비어 있는 일차로 선택 변경
+      setSelectedDate(emptyDayIndex);
+      return;
+    }
+    
     // 여행 계획 업데이트 API 호출 전에 isModified 플래그 제거
     const updatedDateLocations = JSON.parse(JSON.stringify(dateLocations));
     updatedDateLocations.forEach((dayLocation: { locations: TravelLocation[] }) => {
@@ -235,8 +268,21 @@ const Planning = () => {
     }
   }, [dateLocations, selectedDate]);
   
+  // 선택된 날짜가 유효한지 확인하는 useEffect
+  useEffect(() => {
+    // dateLocations가 비어있지 않고 선택된 날짜가 범위를 벗어난 경우
+    if (dateLocations.length > 0 && 
+        selectedDate !== null && 
+        (selectedDate < 0 || selectedDate >= dateLocations.length || !dateLocations[selectedDate])) {
+      console.log('선택된 날짜가 유효하지 않습니다:', selectedDate, '유효 범위:', 0, '-', dateLocations.length - 1);
+      // 전체 일정 탭으로 이동
+      setSelectedDate(null);
+    }
+  }, [dateLocations, selectedDate, setSelectedDate]);
+  
   // 경로 정보 변경 핸들러
   const handleRouteChange = (updatedRoute: any, dayIndex: number, routeIndex: number) => {
+    console.log('경로 정보 변경 핸들러 호출:', updatedRoute, dayIndex, routeIndex);
     // 현재 selectedDate 값을 저장
     const currentSelectedDate = selectedDate;
     
@@ -248,8 +294,12 @@ const Planning = () => {
       if (updatedDateLocations[dayIndex] && updatedDateLocations[dayIndex].routes && 
           updatedDateLocations[dayIndex].routes[routeIndex]) {
         // 경로 정보 업데이트
+        const existingRouteId = updatedDateLocations[dayIndex].routes[routeIndex].id; 
+        
         updatedDateLocations[dayIndex].routes[routeIndex] = {
-          ...updatedRoute
+          ...updatedRoute,
+          dateId: updatedDateLocations[dayIndex].id,
+          id: existingRouteId || 0 // 기존 id가 없으면 0으로 설정하여 백엔드가 처리하도록 함
         };
         
         // 전체 데이터 업데이트 - 하나의 업데이트로 병합하여 화면 깜빡임 방지
@@ -309,16 +359,23 @@ const Planning = () => {
             for (let routeIndex = 0; routeIndex < routes.length; routeIndex++) {
               const route = routes[routeIndex];
               
+              // 반드시 원본 route의 id 값을 명시적으로 유지
+              const routeId = route.id || 0; // id가 없으면 0으로 설정
+              
               if (route.fromLocation === originalName) {
                 updatedDateLocations[dayIndex].routes[routeIndex] = {
                   ...route,
-                  fromLocation: updatedLocation.name
+                  fromLocation: updatedLocation.name,
+                  dateId: updatedDateLocations[dayIndex].id,
+                  id: routeId // 명시적으로 id 값 유지 (0 포함)
                 };
               }
               if (route.toLocation === originalName) {
                 updatedDateLocations[dayIndex].routes[routeIndex] = {
                   ...route,
-                  toLocation: updatedLocation.name
+                  toLocation: updatedLocation.name,
+                  dateId: updatedDateLocations[dayIndex].id,
+                  id: routeId // 명시적으로 id 값 유지 (0 포함)
                 };
               }
             }
@@ -478,6 +535,69 @@ const Planning = () => {
     }
   };
 
+  // N일차 추가 핸들러
+  const handleAddNewDay = () => {
+    if (!isEditMode) {
+      alert('수정 모드에서만 일차를 추가할 수 있습니다.');
+      return;
+    }
+
+    // 비어있는 일차가 있는지 확인
+    const emptyDayIndex = dateLocations.findIndex(day => 
+      day.locations.length === 0
+    );
+
+    // 비어있는 일차가 있으면 추가 제한
+    if (emptyDayIndex !== -1) {
+      alert(`${emptyDayIndex + 1}일차가 비어 있습니다. 새로운 일차를 추가하기 전에 비어 있는 일차에 일정을 추가해 주세요.`);
+      // 비어 있는 일차로 선택 변경
+      setSelectedDate(emptyDayIndex);
+      return;
+    }
+
+    // 기존 일정 데이터 복사
+    const updatedDateLocations = JSON.parse(JSON.stringify(dateLocations));
+    
+    // 새로운 일차 인덱스 계산
+    const newDayIndex = updatedDateLocations.length;
+    
+    // 날짜 계산 (마지막 일차 날짜 + 1일)
+    let newDateStr = '';
+    if (updatedDateLocations.length > 0) {
+      const lastDate = new Date(updatedDateLocations[updatedDateLocations.length - 1].date);
+      lastDate.setDate(lastDate.getDate() + 1);
+      newDateStr = lastDate.toISOString().split('T')[0]; // YYYY-MM-DD 형식
+    } else if (startDate) {
+      // 기존 일정이 없으면 시작일 사용
+      newDateStr = startDate;
+    } else {
+      // 시작일도 없으면 오늘 날짜
+      newDateStr = new Date().toISOString().split('T')[0];
+    }
+    
+    // 새 일차 객체 생성
+    const newDay = {
+      date: newDateStr,
+      tripIndex: newDayIndex,
+      locations: [],
+      routes: [],
+    };
+    
+    // 새 일차 추가
+    updatedDateLocations.push(newDay);
+    
+    // 일정 데이터 업데이트
+    setDateLocations(updatedDateLocations);
+    
+    // 새로 추가된 일차로 선택 변경
+    setSelectedDate(newDayIndex);
+    
+    // 변경사항 있음 표시
+    setHasChanges(true);
+    
+    console.log(`새로운 ${newDayIndex + 1}일차가 추가되었습니다.`);
+  };
+
   return (
     <main className="flex min-h-screen bg-gray-50">
       {/* 사이드바 토글 버튼 */}
@@ -489,83 +609,87 @@ const Planning = () => {
         selectedDate={selectedDate}
         dateLocations={dateLocations}
         onDateClick={handleDateClick}
+        isEditMode={isEditMode}
+        onAddNewDay={handleAddNewDay}
       />
 
       {/* 메인 컨텐츠 */}
-      <section className={`flex-grow bg-white p-8 flex flex-col text-gray-800 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        {/* 여행 정보 헤더 */}
-        <TripHeader
-          destination={destination}
-          description={description}
-          startDate={startDate}
-          endDate={endDate}
-        />
-        
-        {/* 저장 버튼과 엑셀 내보내기 버튼 - id가 있으면 저장된 여행이므로 저장버튼은 표시하지 않음 */}
-        <SaveButton 
-          onSave={!id ? handleSavePlan : undefined} 
-          onExportExcel={handleExportExcel} 
-          onEdit={id ? toggleEditMode : undefined}
-          onCancelEdit={isEditMode ? handleCancelEdit : undefined} 
-          isEditMode={isEditMode}
-          timelineWidth={timelineWidth} 
-          showSaveButton={!id} 
-          canSaveChanges={canSaveChanges}
-        />
+      <section className={`flex-grow bg-white p-4 md:p-8 flex flex-col text-gray-800 transition-all duration-300 overflow-x-auto ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        <div className="min-w-max sm:min-w-0 pb-4">
+          {/* 여행 정보 헤더 */}
+          <TripHeader
+            destination={destination}
+            description={description}
+            startDate={startDate}
+            endDate={endDate}
+          />
+          
+          {/* 저장 버튼과 엑셀 내보내기 버튼 - id가 있으면 저장된 여행이므로 저장버튼은 표시하지 않음 */}
+          <SaveButton 
+            onSave={!id ? handleSavePlan : undefined} 
+            onExportExcel={handleExportExcel} 
+            onEdit={toggleEditMode} 
+            onCancelEdit={isEditMode ? handleCancelEdit : undefined} 
+            isEditMode={isEditMode}
+            timelineWidth={timelineWidth} 
+            showSaveButton={!id} 
+            canSaveChanges={canSaveChanges}
+          />
 
-        <div className="flex-grow flex flex-col md:flex-row rounded-2xl overflow-hidden shadow-xl border border-gray-100">
-          {/* 타임라인 */}
-          <section
-            className="w-full bg-gray-50 md:overflow-hidden relative"
-            style={{ flex: `0 0 ${timelineWidth}%` }}
-          >
-            <div className="h-full overflow-auto p-4">
-              <TimeLine
-                onRouteClick={handleRouteClick}
-                onRouteMouseEnter={handleRouteMouseEnter}
-                onRouteMouseLeave={handleRouteMouseLeave}
-                onLocationMouseEnter={handleLocationMouseEnter}
-                onLocationMouseLeave={handleLocationMouseLeave}
-                onLocationClick={handleLocationClick}
-                isEditMode={isEditMode}
-                onLocationContentChange={handleLocationContentChange}
-                onRouteChange={handleRouteChange}
-                addMarkerMode={addMarkerMode}
-                setAddMarkerMode={setAddMarkerMode}
-                onAddMarker={handleAddMarker}
-              />
-            </div>
-          </section>
+          <div className="flex-grow flex flex-col md:flex-row rounded-2xl overflow-hidden shadow-xl border border-gray-100">
+            {/* 타임라인 */}
+            <section
+              className="w-full bg-gray-50 md:overflow-hidden relative"
+              style={{ flex: `0 0 ${timelineWidth}%` }}
+            >
+              <div className="h-full overflow-auto p-4">
+                <TimeLine
+                  onRouteClick={handleRouteClick}
+                  onRouteMouseEnter={handleRouteMouseEnter}
+                  onRouteMouseLeave={handleRouteMouseLeave}
+                  onLocationMouseEnter={handleLocationMouseEnter}
+                  onLocationMouseLeave={handleLocationMouseLeave}
+                  onLocationClick={handleLocationClick}
+                  isEditMode={isEditMode}
+                  onLocationContentChange={handleLocationContentChange}
+                  onRouteChange={handleRouteChange}
+                  addMarkerMode={addMarkerMode}
+                  setAddMarkerMode={setAddMarkerMode}
+                  onAddMarker={handleAddMarker}
+                />
+              </div>
+            </section>
 
-          {/* 리사이즈 핸들 */}
-          <div
-            className="hidden md:flex items-center justify-center w-4 z-10 bg-gradient-to-r from-gray-100 to-white hover:from-blue-50 hover:to-blue-100 transition-colors duration-300 relative"
-            onMouseDown={handleMouseDown}
-            style={{ cursor: 'col-resize' }}
-            ref={resizeRef}
-          >
-            <div className="absolute inset-0 flex flex-col items-center justify-center space-y-1 px-1.5">
-              <div className="w-0.5 h-6 bg-gray-400 rounded-full"></div>
-              <div className="w-0.5 h-6 bg-gray-400 rounded-full"></div>
-              <div className="w-0.5 h-6 bg-gray-400 rounded-full"></div>
+            {/* 리사이즈 핸들 */}
+            <div
+              className="hidden md:flex items-center justify-center w-4 z-10 bg-gradient-to-r from-gray-100 to-white hover:from-blue-50 hover:to-blue-100 transition-colors duration-300 relative"
+              onMouseDown={handleMouseDown}
+              style={{ cursor: 'col-resize' }}
+              ref={resizeRef}
+            >
+              <div className="absolute inset-0 flex flex-col items-center justify-center space-y-1 px-1.5">
+                <div className="w-0.5 h-6 bg-gray-400 rounded-full"></div>
+                <div className="w-0.5 h-6 bg-gray-400 rounded-full"></div>
+                <div className="w-0.5 h-6 bg-gray-400 rounded-full"></div>
+              </div>
             </div>
+
+            {/* 지도 */}
+            <section className="w-full flex-grow bg-white">
+              <div className="w-full h-full p-4">
+                <MapComponent
+                  travelPlanData={selectedDate !== null ? [dateLocations[selectedDate]] : dateLocations}
+                  onMarkerClick={handleMarkerClick}
+                  hoveredLocation={hoveredLocation}
+                  isEditMode={isEditMode}
+                  onMarkerChange={handleChange}
+                  addMarkerMode={addMarkerMode}
+                  tempMarkerPosition={addMarkerMode ? tempMarkerPosition : selectedMarkerPosition}
+                  onAddMarker={handleAddMarker}
+                />
+              </div>
+            </section>
           </div>
-
-          {/* 지도 */}
-          <section className="w-full flex-grow bg-white">
-            <div className="w-full h-full p-4">
-              <MapComponent
-                travelPlanData={selectedDate !== null ? [dateLocations[selectedDate]] : dateLocations}
-                onMarkerClick={handleMarkerClick}
-                hoveredLocation={hoveredLocation}
-                isEditMode={isEditMode}
-                onMarkerChange={handleChange}
-                addMarkerMode={addMarkerMode}
-                tempMarkerPosition={addMarkerMode ? tempMarkerPosition : selectedMarkerPosition}
-                onAddMarker={handleAddMarker}
-              />
-            </div>
-          </section>
         </div>
       </section>
     </main>

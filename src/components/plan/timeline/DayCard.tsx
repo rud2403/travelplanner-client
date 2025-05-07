@@ -326,7 +326,8 @@ const DayCard: React.FC<DayCardProps> = ({
                           description: newLocation.description || '',
                           startTime: newLocation.startTime || '09:00',
                           endTime: newLocation.endTime || '10:00',
-                          isModified: true
+                          isModified: true,
+                          dateId: updatedDateLocations[dayIndex].id
                         };
 
                         // 로케이션 추가
@@ -342,7 +343,9 @@ const DayCard: React.FC<DayCardProps> = ({
                             toLocation: newFullLocation.name,
                             transportationType: 1, // 기본 이동수단 (자동차)
                             method: 1,
-                            time: '30' // 기본 30분
+                            time: '30', // 기본 30분
+                            dateId: updatedDateLocations[dayIndex].id,
+                            id: 0 // 새 경로는 id를 0으로 설정하여 백엔드가 새 ID를 할당하도록 함
                           };
 
                           // 경로 추가

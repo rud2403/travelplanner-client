@@ -40,7 +40,7 @@ export const updateTravelPlanAPI = async (travelPlan: any) => {
 
     console.log('API 응답:', response.data);
 
-    if (response.data.status === 200) {
+    if (response.status === 200) {
       return response.data.data || response.data;
     } else {
       throw new Error(response.data.message || response.statusText || '여행 계획 업데이트 오류');
