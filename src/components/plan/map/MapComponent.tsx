@@ -13,6 +13,7 @@ import LocationInfoCard from './LocationInfoCard';
 const containerStyle = {
   width: '100%',
   height: '100%',
+  minHeight: '550px',
   borderRadius: '12px',
 };
 
@@ -268,7 +269,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   };
 
   return (
-    <div className="relative rounded-xl overflow-hidden shadow-lg h-full">
+    <div className="relative rounded-xl overflow-hidden shadow-lg h-full min-h-[550px]">
       {/* 마커 추가 모드일 때 안내 메시지 */}
       {addMarkerMode && (
         <div className="absolute top-4 left-0 right-0 z-10 flex justify-center">

@@ -9,6 +9,7 @@ import DayCard from './DayCard';
 interface TimelineProps extends LocationHandlerProps, RouteHandlerProps {
   isEditMode?: boolean;
   onLocationContentChange?: (location: TravelLocation) => void;
+  onLocationDelete?: (location: TravelLocation, dayIndex: number) => void; // 여행지 삭제 함수 추가
   onRouteChange?: (route: any, dayIndex: number, routeIndex: number) => void;
   addMarkerMode?: boolean;
   setAddMarkerMode?: (mode: boolean) => void;
@@ -27,6 +28,7 @@ const Timeline: React.FC<TimelineProps> = ({
   onLocationClick,
   isEditMode = false,
   onLocationContentChange,
+  onLocationDelete,
   onRouteChange,
   addMarkerMode = false,
   setAddMarkerMode,
@@ -70,7 +72,7 @@ const Timeline: React.FC<TimelineProps> = ({
   }
 
   return (
-    <div className="flex space-x-6">
+    <div className="flex space-x-6 min-h-[600px]">
       <style jsx global>{`
         /* 스크롤바 스타일 지정 */
         ::-webkit-scrollbar {
@@ -122,6 +124,7 @@ const Timeline: React.FC<TimelineProps> = ({
             onLocationClick={onLocationClick}
             isEditMode={isEditMode}
             onLocationContentChange={onLocationContentChange}
+            onLocationDelete={onLocationDelete}
             onRouteChange={onRouteChange}
             addMarkerMode={addMarkerMode}
             setAddMarkerMode={setAddMarkerMode}

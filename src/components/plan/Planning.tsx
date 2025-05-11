@@ -3,7 +3,7 @@ import { dispatchLocationUpdateEvent } from './event/LocationEvents';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTravelStore } from '@/store/useTravelStore';
-import { TravelLocation } from '@/types/travel';
+import { TravelLocation, TravelRoute } from '@/types/travel';
 
 // 컴포넌트 가져오기
 import MapComponent from '@/components/plan/map/MapComponent';
@@ -191,6 +191,105 @@ const Planning = () => {
     
     // 콘솔에 로그 추가
     console.log('취소 버튼 클릭: 위치 정보 초기화 완료, 전체 일정 탭으로 이동');
+  };
+  
+  // 여행지 삭제 핸들러
+  const handleLocationDelete = (locationToDelete: TravelLocation, dayIndex: number) => {
+    console.log('여행지 삭제 핸들러 호출:', locationToDelete, dayIndex);
+    
+    // 현재 선택된 일차 값 저장
+    const currentSelectedDate = selectedDate;
+    
+    // 데이터 복사 - 불변성 유지를 위한 딥 복사
+    const updatedDateLocations = JSON.parse(JSON.stringify(dateLocations));
+    
+    // 해당 일차에서 여행지 찾아 삭제
+    if (updatedDateLocations[dayIndex] && updatedDateLocations[dayIndex].locations) {
+      // 삭제할 위치의 인덱스 찾기
+      const locationIndex = updatedDateLocations[dayIndex].locations.findIndex(
+        (loc: TravelLocation) => 
+          Math.abs(loc.lat - locationToDelete.lat) < 0.0001 && 
+          Math.abs(loc.lng - locationToDelete.lng) < 0.0001
+      );
+      
+      if (locationIndex !== -1) {
+        // 삭제할 여행지 이름 저장 (경로 업데이트에 필요)
+        const deletedLocationName = updatedDateLocations[dayIndex].locations[locationIndex].name;
+        
+        // 여행지 삭제
+        updatedDateLocations[dayIndex].locations.splice(locationIndex, 1);
+        
+        // 경로 재구성
+        if (updatedDateLocations[dayIndex].routes) {
+          // 삭제된 여행지가 포함된 경로만 삭제
+          const originalRoutes = updatedDateLocations[dayIndex].routes.filter(
+            (route: TravelRoute) => 
+              route.fromLocation !== deletedLocationName && 
+              route.toLocation !== deletedLocationName
+          );
+          
+          // 남은 여행지들의 연결 정보 만들기
+          const locations = updatedDateLocations[dayIndex].locations;
+          const pairs: {from: string, to: string}[] = [];
+          
+          // 연결되어야 하는 여행지 쌍 생성
+          for (let i = 0; i < locations.length - 1; i++) {
+            pairs.push({
+              from: locations[i].name,
+              to: locations[i + 1].name
+            });
+          }
+          
+          // 새로운 경로 배열 생성
+          const newRoutes: TravelRoute[] = [];
+          
+          // 각 연결 쌍에 대해
+          for (const pair of pairs) {
+            // 기존 경로에 존재하는지 확인
+            const existingRoute = originalRoutes.find(
+              (route: TravelRoute) => 
+                route.fromLocation === pair.from && 
+                route.toLocation === pair.to
+            );
+            
+            if (existingRoute) {
+              // 기존 경로가 있다면 그대로 유지
+              newRoutes.push(existingRoute);
+            } else {
+              // 기존 경로가 없다면 새로 생성
+              const newRoute: TravelRoute = {
+                fromLocation: pair.from,
+                toLocation: pair.to,
+                transportationType: 1, // 기본 이동수단 (자동차)
+                method: 1,
+                time: '30', // 기본 30분
+                dateId: updatedDateLocations[dayIndex].id,
+                id: 0 // 새 경로는 id를 0으로 설정하여 백엔드가 새 ID를 할당하도록 함
+              };
+              newRoutes.push(newRoute);
+            }
+          }
+          
+          // 경로 배열 바꾸기
+          updatedDateLocations[dayIndex].routes = newRoutes;
+        }
+        
+        // 상태 업데이트 - 하나의 업데이트로 병합하여 화면 깜빡임 방지
+        useTravelStore.setState({
+          dateLocations: updatedDateLocations,
+          selectedDate: currentSelectedDate
+        });
+        
+        // 변경사항 있음을 표시
+        setHasChanges(true);
+        
+        console.log('여행지 삭제 완료:', deletedLocationName);
+        return true;
+      }
+    }
+    
+    console.log('삭제할 여행지를 찾을 수 없습니다');
+    return false;
   };
   
   // 변경사항 저장 핸들러
@@ -614,7 +713,7 @@ const Planning = () => {
       />
 
       {/* 메인 컨텐츠 */}
-      <section className={`flex-grow bg-white p-4 md:p-8 flex flex-col text-gray-800 transition-all duration-300 overflow-x-auto ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <section className={`flex-grow bg-white p-4 md:p-8 flex flex-col text-gray-800 transition-all duration-300 overflow-x-auto min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="min-w-max sm:min-w-0 pb-4">
           {/* 여행 정보 헤더 */}
           <TripHeader
@@ -652,6 +751,7 @@ const Planning = () => {
                   onLocationClick={handleLocationClick}
                   isEditMode={isEditMode}
                   onLocationContentChange={handleLocationContentChange}
+                  onLocationDelete={handleLocationDelete}
                   onRouteChange={handleRouteChange}
                   addMarkerMode={addMarkerMode}
                   setAddMarkerMode={setAddMarkerMode}
@@ -676,7 +776,7 @@ const Planning = () => {
 
             {/* 지도 */}
             <section className="w-full flex-grow bg-white">
-              <div className="w-full h-full p-4">
+              <div className="w-full h-full p-4 min-h-[600px]">
                 <MapComponent
                   travelPlanData={selectedDate !== null ? [dateLocations[selectedDate]] : dateLocations}
                   onMarkerClick={handleMarkerClick}

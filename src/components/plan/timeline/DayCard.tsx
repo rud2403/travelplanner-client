@@ -14,6 +14,7 @@ interface DayCardProps extends LocationHandlerProps, RouteHandlerProps {
   color: string;
   isEditMode?: boolean;
   onLocationContentChange?: (location: TravelLocation) => void;
+  onLocationDelete?: (location: TravelLocation, dayIndex: number) => void; // 여행지 삭제 함수 추가
   onRouteChange?: (route: TravelRoute, dayIndex: number, routeIndex: number) => void;
   addMarkerMode?: boolean;
   setAddMarkerMode?: (mode: boolean) => void;
@@ -35,6 +36,7 @@ const DayCard: React.FC<DayCardProps> = ({
   onLocationClick,
   isEditMode = false,
   onLocationContentChange,
+  onLocationDelete,
   onRouteChange,
   addMarkerMode = false,
   setAddMarkerMode,
@@ -137,7 +139,7 @@ const DayCard: React.FC<DayCardProps> = ({
   }, [dayIndex]);
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-xl min-w-[320px] max-h-[calc(100vh-200px)] flex flex-col border border-gray-100 hover:border-blue-200 transition-all duration-300">
+    <div className="bg-white p-6 rounded-xl shadow-xl min-w-[320px] min-h-[500px] max-h-[calc(100vh-200px)] flex flex-col border border-gray-100 hover:border-blue-200 transition-all duration-300">
       <div className="mb-6">
         <h3 className="text-3xl font-bold text-center mb-2" style={{ color }}>
           {dayIndex + 1}일차
@@ -158,6 +160,7 @@ const DayCard: React.FC<DayCardProps> = ({
               onClick={() => onLocationClick(location)}
               isEditMode={isEditMode}
               onContentChange={onLocationContentChange}
+              onDelete={(loc) => onLocationDelete && onLocationDelete(loc, dayIndex)}
             />
 
             {/* 이동 경로 항목 */}
