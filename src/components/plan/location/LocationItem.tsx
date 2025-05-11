@@ -14,6 +14,7 @@ interface LocationItemProps {
   onClick: () => void;
   isEditMode?: boolean;
   onContentChange?: (location: TravelLocation) => void;
+  onDelete?: (location: TravelLocation) => void; // 여행지 삭제 함수 추가
 }
 
 /**
@@ -27,7 +28,8 @@ const LocationItem: React.FC<LocationItemProps> = ({
   onMouseLeave,
   onClick,
   isEditMode = false,
-  onContentChange
+  onContentChange,
+  onDelete
 }) => {
   const locationType = location.type as keyof typeof LOCATION_TYPE_MAP;
   const bgColor = LOCATION_TYPE_STYLES.backgroundColor[locationType] || '#F3F4F6';
@@ -81,6 +83,27 @@ const LocationItem: React.FC<LocationItemProps> = ({
       console.log('수정 모드 비활성화로 인한 편집 모드 종료');
     }
   }, [isEditMode, isEditing, location]);
+
+  // 여행지 삭제 처리 함수
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 이벤트 버블링 방지
+    
+    // 삭제 확인 다이얼로그
+    if (window.confirm(`정말로 "${location.name}" 여행지를 삭제하시겠습니까?`)) {
+      if (onDelete) {
+        // 현재 selectedDate 값을 저장
+        const currentSelectedDate = useTravelStore.getState().selectedDate;
+        
+        // 삭제 함수 호출
+        onDelete(location);
+        
+        // preservedSelectedDate도 설정
+        useTravelStore.setState({
+          preservedSelectedDate: currentSelectedDate
+        });
+      }
+    }
+  };
   
   return (
     <li
@@ -99,8 +122,21 @@ const LocationItem: React.FC<LocationItemProps> = ({
 
         {!isEditing && (
           <div className="flex flex-col">
-            <div className="flex items-center mb-1">
+            <div className="flex items-center mb-1 justify-between">
               <span className="font-semibold text-lg">{location.name}</span>
+              
+              {/* 수정 모드일 때 삭제 버튼 표시 */}
+              {isEditMode && (
+                <button
+                  onClick={handleDelete}
+                  className="text-red-500 hover:text-red-700 p-1"
+                  title="여행지 삭제"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              )}
             </div>
 
             <div className="flex items-center mb-1 text-sm text-gray-600">
