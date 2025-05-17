@@ -634,6 +634,117 @@ const Planning = () => {
     }
   };
 
+  // N일차 삭제 핸들러
+  const handleDeleteDay = (dayIndex: number) => {
+    if (!isEditMode) {
+      alert('수정 모드에서만 일차를 삭제할 수 있습니다.');
+      return;
+    }
+
+    // 마지막 남은 일차를 삭제하려는 경우 방지
+    if (dateLocations.length === 1) {
+      alert('여행에는 최소한 하루 일정이 포함되어야 합니다.');
+      return;
+    }
+
+    // 삭제 확인
+    const confirmDelete = window.confirm(`${dayIndex + 1}일차를 삭제하시겠습니까? 해당 일차의 모든 일정과 경로가 삭제됩니다.`);
+    if (!confirmDelete) {
+      return;
+    }
+
+    try {
+      // 데이터의 깊은 복사를 생성
+      const updatedDateLocations = JSON.parse(JSON.stringify(dateLocations));
+      
+      // 삭제할 일차의 정보 로그
+      console.log(`삭제할 일차: ${dayIndex+1}일차, 날짜:`, updatedDateLocations[dayIndex].date);
+      
+      // 삭제 전 일정에서 모든 날짜 가져오기 (YYYY-MM-DD 형식)
+      const allDates = updatedDateLocations.map((day: { date: any; }) => day.date);
+      console.log('일차 삭제 전 전체 날짜:', allDates);
+      
+      // 해당 일차 삭제
+      updatedDateLocations.splice(dayIndex, 1);
+      console.log('일차 삭제 후 개수:', updatedDateLocations.length);
+      
+      // 삭제 후 일차를 순회하면서 일차 번호와 날짜 조정
+      for (let i = 0; i < updatedDateLocations.length; i++) {
+        // 일차 인덱스 업데이트
+        updatedDateLocations[i].tripIndex = i;
+        
+        // 삭제된 일차 이후의 날짜 조정
+        if (i >= dayIndex) {
+          // i번째 일차는 삭제 전 (i+1)번째 일차의 날짜를 사용
+          const newDate = allDates[i + 1];
+          if (newDate) {
+            updatedDateLocations[i].date = newDate;
+            console.log(`새로운 ${i+1}일차의 날짜:`, newDate);
+          }
+        }
+      }
+      
+      // 새로운 날짜 가 적용된 후의 일정 로그
+      const updatedDates = updatedDateLocations.map((day: { date: any; }, idx: number) => `${idx+1}일차: ${day.date}`);
+      console.log('업데이트된 날짜 정보:', updatedDates);
+      
+      // 날짜 벗어나는 문제를 해결하기 위해 추가 처리
+      // 1. 모든 일차의 날짜를 순차적으로 다시 계산
+      if (updatedDateLocations.length > 0) {
+        // 첫번째 일차의 날짜를 기준으로 하여 일차 순서대로 날짜 계산
+        const firstDay = new Date(updatedDateLocations[0].date);
+
+        // 남은 일차의 날짜를 첫번째 일의 날짜로부터 순서대로 계산
+        for (let i = 1; i < updatedDateLocations.length; i++) {
+          const nextDate = new Date(firstDay);
+          nextDate.setDate(firstDay.getDate() + i); // i일 후의 날짜
+          
+          // YYYY-MM-DD 형식으로 변환
+          updatedDateLocations[i].date = nextDate.toISOString().split('T')[0];
+          console.log(`일차 ${i+1}의 재계산된 날짜:`, updatedDateLocations[i].date);
+        }
+        
+        // 시작일과 종료일 업데이트
+        const newStartDate = updatedDateLocations[0].date;
+        const newEndDate = updatedDateLocations[updatedDateLocations.length - 1].date;
+        
+        // store에 새로운 시작일과 종료일 설정
+        useTravelStore.setState({ 
+          startDate: newStartDate,
+          endDate: newEndDate
+        });
+        
+        console.log('시작일과 종료일 업데이트:', { 
+          newStartDate, 
+          newEndDate 
+        });
+      }
+      
+      // 전체 상태 업데이트
+      setDateLocations(updatedDateLocations);
+      
+      // 선택된 일차 조정
+      if (selectedDate !== null) {
+        // 선택된 일차가 삭제된 경우 선택 초기화
+        if (selectedDate === dayIndex) {
+          setSelectedDate(null);
+        }
+        // 선택된 일차가 삭제된 일차 이후에 있는 경우 인덱스 조정
+        else if (selectedDate > dayIndex) {
+          setSelectedDate(selectedDate - 1);
+        }
+      }
+      
+      // 변경사항 있음 표시
+      setHasChanges(true);
+      
+      console.log(`${dayIndex + 1}일차가 성공적으로 삭제되었습니다.`);
+    } catch (error) {
+      console.error('일차 삭제 중 오류 발생:', error);
+      alert('일차 삭제 중 오류가 발생했습니다.');
+    }
+  };
+
   // N일차 추가 핸들러
   const handleAddNewDay = () => {
     if (!isEditMode) {
@@ -688,6 +799,19 @@ const Planning = () => {
     // 일정 데이터 업데이트
     setDateLocations(updatedDateLocations);
     
+    // 종료일 업데이트
+    if (updatedDateLocations.length > 0) {
+      // 새로운 종료일은 마지막 일차의 날짜
+      const newEndDate = newDateStr;
+      
+      // store에 새로운 종료일 설정
+      useTravelStore.setState({ 
+        endDate: newEndDate
+      });
+      
+      console.log('종료일 업데이트:', newEndDate);
+    }
+    
     // 새로 추가된 일차로 선택 변경
     setSelectedDate(newDayIndex);
     
@@ -710,6 +834,7 @@ const Planning = () => {
         onDateClick={handleDateClick}
         isEditMode={isEditMode}
         onAddNewDay={handleAddNewDay}
+        onDeleteDay={handleDeleteDay}
       />
 
       {/* 메인 컨텐츠 */}
