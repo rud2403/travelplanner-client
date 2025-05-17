@@ -24,7 +24,7 @@ const DateButton: React.FC<DateButtonProps> = ({
     <button
       onClick={onClick}
       className={`
-        flex items-center p-3 
+        flex items-center p-3 w-full
         ${isActive 
           ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' 
           : 'bg-white text-blue-800 hover:bg-blue-50'} 
